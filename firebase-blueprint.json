@@ -1,0 +1,189 @@
+{
+  "entities": {
+    "product": {
+      "title": "Product",
+      "description": "A catalog product (e.g. kraft bag or packaging item)",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Product display name",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "description": {
+          "type": "string",
+          "description": "Product description",
+          "maxLength": 500
+        },
+        "price": {
+          "type": "number",
+          "description": "Sale price in BRL"
+        },
+        "costPrice": {
+          "type": "number",
+          "description": "Cost price in BRL"
+        },
+        "profit": {
+          "type": "number",
+          "description": "Calculated profit in BRL"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU identifier",
+          "maxLength": 50
+        },
+        "code": {
+          "type": "string",
+          "description": "Product internal code",
+          "maxLength": 50
+        },
+        "category": {
+          "type": "string",
+          "description": "Assigned category name",
+          "maxLength": 100
+        },
+        "increment": {
+          "type": "number",
+          "description": "Quantity increment step"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Stock count"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit or bundle description",
+          "maxLength": 100
+        },
+        "available": {
+          "type": "boolean",
+          "description": "Whether the product is currently available"
+        },
+        "hideDescription": {
+          "type": "boolean",
+          "description": "Hide product description in catalog"
+        },
+        "hidePrice": {
+          "type": "boolean",
+          "description": "Hide product price in catalog"
+        },
+        "orderIndex": {
+          "type": "number",
+          "description": "Display order sort index"
+        }
+      },
+      "required": ["name", "price", "available"]
+    },
+    "category": {
+      "title": "Category",
+      "description": "A product category group",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Category name",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional category description",
+          "maxLength": 300
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL or compressed data URL of category image",
+          "maxLength": 300000
+        },
+        "imageZoom": {
+          "type": "number",
+          "description": "Category image zoom percentage (-50 to +50)"
+        },
+        "orderIndex": {
+          "type": "number",
+          "description": "Display order sort index"
+        }
+      },
+      "required": ["name"]
+    },
+    "settings": {
+      "title": "StoreSettings",
+      "description": "Global store and catalog configuration",
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "string",
+          "description": "Display name of the store",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Catalog subtitle",
+          "maxLength": 150
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL to store logo or compressed data URL",
+          "maxLength": 300000
+        },
+        "logoZoom": {
+          "type": "number",
+          "description": "Logo zoom percentage (-50 to +50)"
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "Target WhatsApp number for receiving orders",
+          "maxLength": 30
+        },
+        "pixKey": {
+          "type": "string",
+          "description": "PIX payment key",
+          "maxLength": 100
+        },
+        "minOrderValue": {
+          "type": "number",
+          "description": "Minimum order value"
+        },
+        "deliveryNotice": {
+          "type": "string",
+          "description": "Notice regarding delivery or pickup",
+          "maxLength": 500
+        },
+        "hideCatalogDescription": {
+          "type": "boolean",
+          "description": "Global toggle to hide catalog descriptions"
+        },
+        "hideCatalogPrice": {
+          "type": "boolean",
+          "description": "Global toggle to hide catalog prices"
+        },
+        "showCategoryImages": {
+          "type": "boolean",
+          "description": "Global toggle to display category images in the catalog"
+        },
+        "adminPassword": {
+          "type": "string",
+          "description": "Admin access authentication password",
+          "maxLength": 100
+        }
+      },
+      "required": ["storeName", "whatsappNumber"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "Catalog products for packaging and kraft bags"
+    },
+    "/categories/{categoryId}": {
+      "schema": "category",
+      "description": "Product categories in the catalog"
+    },
+    "/settings/{settingsId}": {
+      "schema": "settings",
+      "description": "Store configuration parameters"
+    }
+  }
+}

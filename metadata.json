@@ -1,0 +1,8 @@
+{
+  "name": "Distribuidora ( Descartáveis )",
+  "description": "Aplicativo mobile-first para clientes de padarias visualizarem o catálogo de produtos descartáveis e enviarem pedidos diretamente pelo WhatsApp, com painel administrativo integrado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

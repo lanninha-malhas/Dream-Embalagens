@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidCategory(data) {
+      return data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 100 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 300)) &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 300000)) &&
+        (!('imageZoom' in data) || data.imageZoom is number) &&
+        (!('orderIndex' in data) || data.orderIndex is number);
+    }
+
+    function isValidProduct(data) {
+      return data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 150 &&
+        data.price is number &&
+        data.price >= 0 &&
+        data.available is bool &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('costPrice' in data) || data.costPrice is number) &&
+        (!('profit' in data) || data.profit is number) &&
+        (!('sku' in data) || (data.sku is string && data.sku.size() <= 50)) &&
+        (!('code' in data) || (data.code is string && data.code.size() <= 50)) &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+        (!('unit' in data) || (data.unit is string && data.unit.size() <= 100)) &&
+        (!('increment' in data) || data.increment is number) &&
+        (!('stock' in data) || data.stock is number) &&
+        (!('hideDescription' in data) || data.hideDescription is bool) &&
+        (!('hidePrice' in data) || data.hidePrice is bool) &&
+        (!('orderIndex' in data) || data.orderIndex is number);
+    }
+
+    function isValidSettings(data) {
+      return data.storeName is string &&
+        data.storeName.size() > 0 &&
+        data.storeName.size() <= 100 &&
+        data.whatsappNumber is string &&
+        data.whatsappNumber.size() <= 30 &&
+        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 150)) &&
+        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 300000)) &&
+        (!('logoZoom' in data) || data.logoZoom is number) &&
+        (!('pixKey' in data) || (data.pixKey is string && data.pixKey.size() <= 100)) &&
+        (!('minOrderValue' in data) || data.minOrderValue is number) &&
+        (!('deliveryNotice' in data) || (data.deliveryNotice is string && data.deliveryNotice.size() <= 500)) &&
+        (!('hideCatalogDescription' in data) || data.hideCatalogDescription is bool) &&
+        (!('hideCatalogPrice' in data) || data.hideCatalogPrice is bool) &&
+        (!('showCategoryImages' in data) || data.showCategoryImages is bool) &&
+        (!('adminPassword' in data) || (data.adminPassword is string && data.adminPassword.size() <= 100));
+    }
+
+    // Test connection check
+    match /test/{docId} {
+      allow read: if isValidId(docId);
+      allow write: if false;
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if isValidId(categoryId);
+      allow list: if true;
+      allow create: if isValidId(categoryId) && isValidCategory(incoming());
+      allow update: if isValidId(categoryId) && isValidCategory(incoming());
+      allow delete: if isValidId(categoryId);
+    }
+
+    // Products collection
+    match /products/{productId} {
+      allow read: if isValidId(productId);
+      allow list: if true;
+      allow create: if isValidId(productId) && isValidProduct(incoming());
+      allow update: if isValidId(productId) && isValidProduct(incoming());
+      allow delete: if isValidId(productId);
+    }
+
+    // Settings collection
+    match /settings/{settingsId} {
+      allow read: if isValidId(settingsId);
+      allow list: if true;
+      allow create: if isValidId(settingsId) && isValidSettings(incoming());
+      allow update: if isValidId(settingsId) && isValidSettings(incoming());
+      allow delete: if isValidId(settingsId);
+    }
+  }
+}
