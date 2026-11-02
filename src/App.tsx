@@ -37,6 +37,9 @@ import {
   deleteCategoryFromCloud,
   saveSettingsToCloud,
   wipeAllDataFromCloud,
+  getLocalCachedCategories,
+  getLocalCachedProducts,
+  getLocalCachedSettings,
 } from './services/supabase.ts';
 
 // Helper function to normalize text (removes accents and converts to lowercase)
@@ -63,17 +66,23 @@ function getInitialView(): 'catalog' | 'cart' | 'admin' {
 }
 
 export default function App() {
-  const [categories, setCategories] = useState<Category[]>(() =>
-    isSupabaseConfigured ? [] : INITIAL_CATEGORIES
-  );
-  const [products, setProducts] = useState<Product[]>(() =>
-    isSupabaseConfigured ? [] : INITIAL_PRODUCTS
-  );
-  const [settings, setSettings] = useState<StoreSettings>(INITIAL_SETTINGS);
+  // Inicialização resiliente a partir do cache local para resposta instantânea
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const cached = getLocalCachedCategories();
+    return cached.length > 0 ? cached : INITIAL_CATEGORIES;
+  });
+  const [products, setProducts] = useState<Product[]>(() => {
+    const cached = getLocalCachedProducts();
+    return cached.length > 0 ? cached : INITIAL_PRODUCTS;
+  });
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    const cached = getLocalCachedSettings();
+    return (cached as StoreSettings) || INITIAL_SETTINGS;
+  });
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const [isLoadingCloud, setIsLoadingCloud] = useState<boolean>(true);
-  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
+  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
   const [currentView, setCurrentView] = useState<'catalog' | 'cart' | 'admin'>(getInitialView);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryForModal, setSelectedCategoryForModal] = useState<Category | null>(null);
@@ -130,46 +139,31 @@ export default function App() {
     handleNavigate('catalog');
   };
 
-  // 1. Limpeza completa da memória interna (localStorage residual) no carregamento
-  useEffect(() => {
-    purgeInternalStorage();
-  }, []);
-
-  // 2. Conectar e sincronizar em tempo real com o banco de dados Supabase
+  // Conectar e sincronizar em tempo real com o banco de dados Supabase (sem wipe automático ao carregar)
   useEffect(() => {
     let unsubscribeCats: (() => void) | undefined;
     let unsubscribeProds: (() => void) | undefined;
     let unsubscribeSets: (() => void) | undefined;
 
+    // Registra assinaturas (emitem cache local instantaneamente se offline)
+    unsubscribeCats = subscribeCategories((cloudCategories) => {
+      setCategories(cloudCategories);
+    });
+
+    unsubscribeProds = subscribeProducts((cloudProducts) => {
+      setProducts(cloudProducts);
+    });
+
+    unsubscribeSets = subscribeSettings((cloudSettings) => {
+      setSettings(cloudSettings);
+    });
+
     async function initCloudSync() {
       try {
-        if (isSupabaseConfigured) {
-          const connected = await testConnection();
-          if (connected) {
-            // Executa a limpeza total do catálogo e banco de dados se ainda não tiver sido realizada
-            const isCleanDone = localStorage.getItem('catalog_zerado_v3') === 'true';
-            if (!isCleanDone) {
-              await wipeAllDataFromCloud();
-              localStorage.setItem('catalog_zerado_v3', 'true');
-            } else {
-              await initializeCloudDatabase();
-            }
-            setIsCloudConnected(true);
-
-            unsubscribeCats = subscribeCategories((cloudCategories) => {
-              setCategories(cloudCategories);
-            });
-
-            unsubscribeProds = subscribeProducts((cloudProducts) => {
-              setProducts(cloudProducts);
-            });
-
-            unsubscribeSets = subscribeSettings((cloudSettings) => {
-              setSettings(cloudSettings);
-            });
-          } else {
-            setIsCloudConnected(false);
-          }
+        const connected = await testConnection();
+        if (connected) {
+          await initializeCloudDatabase();
+          setIsCloudConnected(true);
         } else {
           setIsCloudConnected(false);
         }

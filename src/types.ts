@@ -14,6 +14,9 @@ export interface Product {
   available: boolean;
   hideDescription?: boolean;
   hidePrice?: boolean;
+  imageUrl?: string;
+  imageZoom?: number;
+  orderIndex?: number;
 }
 
 export interface Category {
@@ -22,6 +25,7 @@ export interface Category {
   description?: string;
   imageUrl?: string;
   imageZoom?: number; // Zoom da imagem da categoria: -50 a +50 (padrão 0)
+  orderIndex?: number;
 }
 
 export interface CartItem {

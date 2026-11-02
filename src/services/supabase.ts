@@ -42,16 +42,97 @@ export function sanitizeSupabaseKey(rawKey?: string): string {
   return rawKey.trim().replace(/^["']|["']$/g, '').trim();
 }
 
-// Configuração obtida via variáveis de ambiente com sanitização
-const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export const CUSTOM_SUPABASE_URL_KEY = 'office_custom_supabase_url';
+export const CUSTOM_SUPABASE_KEY_KEY = 'office_custom_supabase_anon_key';
+export const CATEGORIES_CACHE_KEY = 'office_catalog_categories_cache';
+export const PRODUCTS_CACHE_KEY = 'office_catalog_products_cache';
+export const SETTINGS_CACHE_KEY = 'office_store_settings_cache';
 
-const envSupabaseUrl = sanitizeSupabaseUrl(rawSupabaseUrl);
-const envSupabaseAnonKey = sanitizeSupabaseKey(rawSupabaseAnonKey);
+// Obtém as credenciais de Supabase (primeiro do ambiente Vercel/Vite, ou do armazenamento local se configurado no painel)
+export function getSupabaseCredentials(): { url: string; anonKey: string } {
+  let url = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+  let anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
-export const isSupabaseConfigured = Boolean(envSupabaseUrl && envSupabaseAnonKey);
+  if ((!url || !anonKey) && typeof window !== 'undefined') {
+    try {
+      const storedUrl = localStorage.getItem(CUSTOM_SUPABASE_URL_KEY) || '';
+      const storedKey = localStorage.getItem(CUSTOM_SUPABASE_KEY_KEY) || '';
+      if (storedUrl && storedKey) {
+        url = storedUrl;
+        anonKey = storedKey;
+      }
+    } catch {
+      // Ignore
+    }
+  }
 
-// Limpeza de resíduos de armazenamento local
+  return {
+    url: sanitizeSupabaseUrl(url),
+    anonKey: sanitizeSupabaseKey(anonKey),
+  };
+}
+
+export function setCustomSupabaseCredentials(url: string, anonKey: string): void {
+  if (typeof window !== 'undefined') {
+    try {
+      if (url.trim() && anonKey.trim()) {
+        localStorage.setItem(CUSTOM_SUPABASE_URL_KEY, sanitizeSupabaseUrl(url));
+        localStorage.setItem(CUSTOM_SUPABASE_KEY_KEY, sanitizeSupabaseKey(anonKey));
+      } else {
+        localStorage.removeItem(CUSTOM_SUPABASE_URL_KEY);
+        localStorage.removeItem(CUSTOM_SUPABASE_KEY_KEY);
+      }
+    } catch {
+      // Ignore
+    }
+    supabaseClient = null; // recria cliente com as novas credenciais
+  }
+}
+
+export function getIsSupabaseConfigured(): boolean {
+  const { url, anonKey } = getSupabaseCredentials();
+  return Boolean(url && anonKey);
+}
+
+export const isSupabaseConfigured = getIsSupabaseConfigured();
+
+// Cache local resiliente para categorias
+export function getLocalCachedCategories(): Category[] {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalCachedCategories(categories: Category[]): void {
+  try {
+    localStorage.setItem(CATEGORIES_CACHE_KEY, JSON.stringify(categories));
+  } catch {
+    // Ignore
+  }
+}
+
+// Cache local resiliente para produtos
+export function getLocalCachedProducts(): Product[] {
+  try {
+    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalCachedProducts(products: Product[]): void {
+  try {
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(products));
+  } catch {
+    // Ignore
+  }
+}
+
+// Limpeza pontual de chaves antigas residuais (apenas quando solicitado explicitamente)
 export function purgeInternalStorage(): void {
   try {
     const keysToRemove = [
@@ -60,9 +141,6 @@ export function purgeInternalStorage(): void {
       'kraft_catalog_settings_v2',
       'kraft_catalog_settings_v1',
       'kraft_catalog_cart_v1',
-      'office_store_settings_cache',
-      'office_admin_auth',
-      'office_catalog_cart_v1',
       'molekada_logo',
       'office_embalagens_logo',
     ];
@@ -70,12 +148,6 @@ export function purgeInternalStorage(): void {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
     });
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && (k.includes('kraft') || k.includes('molekada') || k.includes('embalagens') || k.includes('cart') || k.includes('cache'))) {
-        localStorage.removeItem(k);
-      }
-    }
   } catch (err) {
     console.error('Error clearing local residual storage:', err);
   }
@@ -85,10 +157,12 @@ let supabaseClient: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
-  if (!isSupabaseConfigured) return null;
+
+  const { url, anonKey } = getSupabaseCredentials();
+  if (!url || !anonKey) return null;
 
   try {
-    supabaseClient = createClient(envSupabaseUrl, envSupabaseAnonKey, {
+    supabaseClient = createClient(url, anonKey, {
       realtime: {
         params: {
           eventsPerSecond: 10,
@@ -188,8 +262,6 @@ function mapCategoryFromRow(row: any): Category & { orderIndex?: number } {
   };
 }
 
-const SETTINGS_CACHE_KEY = 'office_store_settings_cache';
-
 export function getLocalCachedSettings(): Partial<StoreSettings> | null {
   try {
     const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
@@ -244,9 +316,15 @@ export function subscribeCategories(
   callback: (categories: Category[]) => void,
   onError?: (error: Error) => void
 ): () => void {
+  // Emite o cache local imediatamente para exibição instantânea sem tela em branco
+  const cached = getLocalCachedCategories();
+  if (cached.length > 0) {
+    callback(cached);
+  }
+
   const client = getSupabase();
   if (!client) {
-    callback(INITIAL_CATEGORIES);
+    callback(cached);
     return () => {};
   }
 
@@ -264,8 +342,9 @@ export function subscribeCategories(
       }
 
       if (Array.isArray(data)) {
-        // Envia exatamente as categorias do banco. Se o usuário excluiu todas, envia lista vazia [].
-        callback(data.map(mapCategoryFromRow));
+        const mapped = data.map(mapCategoryFromRow);
+        saveLocalCachedCategories(mapped);
+        callback(mapped);
       }
     } catch (err) {
       console.warn('Exceção ao buscar categorias:', err);
@@ -291,9 +370,15 @@ export function subscribeProducts(
   callback: (products: Product[]) => void,
   onError?: (error: Error) => void
 ): () => void {
+  // Emite o cache local imediatamente para exibição instantânea sem tela em branco
+  const cached = getLocalCachedProducts();
+  if (cached.length > 0) {
+    callback(cached);
+  }
+
   const client = getSupabase();
   if (!client) {
-    callback(INITIAL_PRODUCTS);
+    callback(cached);
     return () => {};
   }
 
@@ -311,8 +396,9 @@ export function subscribeProducts(
       }
 
       if (Array.isArray(data)) {
-        // Envia exatamente os produtos do banco. Se o usuário excluiu produtos, envia o estado real do banco.
-        callback(data.map(mapProductFromRow));
+        const mapped = data.map(mapProductFromRow);
+        saveLocalCachedProducts(mapped);
+        callback(mapped);
       }
     } catch (err) {
       console.warn('Exceção ao buscar produtos:', err);
@@ -466,6 +552,22 @@ export async function saveProductToCloud(
   const id = product.id || `kft-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const row = mapProductToRow({ ...product, id }, orderIndex);
 
+  // 1. Atualiza imediatamente o cache local para refletir no catálogo sem atraso
+  const currentProds = getLocalCachedProducts();
+  const fullProd: Product = {
+    ...product,
+    id,
+    orderIndex: typeof orderIndex === 'number' ? orderIndex : (product.orderIndex ?? currentProds.length),
+  };
+  const existingIdx = currentProds.findIndex((p) => p.id === id);
+  if (existingIdx >= 0) {
+    currentProds[existingIdx] = fullProd;
+  } else {
+    currentProds.push(fullProd);
+  }
+  saveLocalCachedProducts(currentProds);
+
+  // 2. Persiste no Supabase caso configurado
   if (client) {
     const { error } = await client.from('products').upsert(row, { onConflict: 'id' });
     if (error) {
@@ -478,6 +580,9 @@ export async function saveProductToCloud(
 }
 
 export async function deleteProductFromCloud(productId: string): Promise<void> {
+  const currentProds = getLocalCachedProducts().filter((p) => p.id !== productId);
+  saveLocalCachedProducts(currentProds);
+
   const client = getSupabase();
   if (!client) return;
 
@@ -489,6 +594,8 @@ export async function deleteProductFromCloud(productId: string): Promise<void> {
 }
 
 export async function reorderProductsInCloud(products: Product[]): Promise<void> {
+  saveLocalCachedProducts(products);
+
   const client = getSupabase();
   if (!client) return;
 
@@ -512,6 +619,24 @@ export async function saveCategoryToCloud(
   const client = getSupabase();
   const id = cat.id || `cat-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
+  // 1. Atualiza imediatamente o cache local para refletir no catálogo sem atraso
+  const currentCats = getLocalCachedCategories();
+  const fullCat: Category = {
+    id,
+    name: (cat.name || '').trim(),
+    description: cat.description?.trim(),
+    imageUrl: cat.imageUrl,
+    imageZoom: typeof cat.imageZoom === 'number' ? cat.imageZoom : 0,
+    orderIndex: typeof orderIndex === 'number' ? orderIndex : (cat.orderIndex ?? currentCats.length),
+  };
+  const existingIdx = currentCats.findIndex((c) => c.id === id);
+  if (existingIdx >= 0) {
+    currentCats[existingIdx] = fullCat;
+  } else {
+    currentCats.push(fullCat);
+  }
+  saveLocalCachedCategories(currentCats);
+
   const row: Record<string, any> = {
     id,
   };
@@ -521,6 +646,7 @@ export async function saveCategoryToCloud(
   if (cat.imageZoom !== undefined) row.image_zoom = Math.max(-50, Math.min(50, Number(cat.imageZoom) || 0));
   if (typeof orderIndex === 'number') row.order_index = orderIndex;
 
+  // 2. Persiste no Supabase caso configurado
   if (client) {
     let attempts = 0;
     while (attempts < 3) {
@@ -545,6 +671,9 @@ export async function saveCategoryToCloud(
 }
 
 export async function deleteCategoryFromCloud(categoryId: string): Promise<void> {
+  const currentCats = getLocalCachedCategories().filter((c) => c.id !== categoryId);
+  saveLocalCachedCategories(currentCats);
+
   const client = getSupabase();
   if (!client) return;
 

@@ -23,10 +23,16 @@ import {
   Copy,
   Check,
   Loader2,
+  Database,
+  Globe,
 } from 'lucide-react';
 import { Product, StoreSettings, Category } from '../types.ts';
 import { formatBRL, maskPhone } from '../utils/formatters.ts';
 import { ProductFormModal } from './ProductFormModal.tsx';
+import {
+  getSupabaseCredentials,
+  setCustomSupabaseCredentials,
+} from '../services/supabase.ts';
 
 interface AdminPanelProps {
   products: Product[];
@@ -50,6 +56,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   products,
   categories,
   settings,
+  isCloudConnected = false,
   onAddProduct,
   onEditProduct,
   onDeleteProduct,
@@ -66,6 +73,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [saveSettingsError, setSaveSettingsError] = useState<string | null>(null);
   const [missingColsNotice, setMissingColsNotice] = useState<string[] | null>(null);
   const [copiedSql, setCopiedSql] = useState(false);
+
+  // Supabase direct connection state
+  const initialCreds = getSupabaseCredentials();
+  const [supabaseUrlInput, setSupabaseUrlInput] = useState(initialCreds.url);
+  const [supabaseKeyInput, setSupabaseKeyInput] = useState(initialCreds.anonKey);
+  const [isSavingSupabase, setIsSavingSupabase] = useState(false);
+  const [supabaseSavedMessage, setSupabaseSavedMessage] = useState<string | null>(null);
+  const [copiedAllSql, setCopiedAllSql] = useState(false);
+
+  const handleSaveSupabaseCredentials = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSupabase(true);
+    setCustomSupabaseCredentials(supabaseUrlInput.trim(), supabaseKeyInput.trim());
+    setSupabaseSavedMessage('Configurações do Supabase salvas! Conectando...');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
 
   // Delete confirmation states
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -1116,6 +1141,185 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>{saveSettingsError}</span>
             </div>
           )}
+        </form>
+      </div>
+
+      {/* SEÇÃO: CONEXÃO SUPABASE & SINCRONIZAÇÃO EM NUVEM */}
+      <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-stone-100">
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                isCloudConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-stone-900">
+                  Conexão Supabase / Banco em Nuvem
+                </h3>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                    isCloudConnected
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                    }`}
+                  />
+                  {isCloudConnected ? 'Conectado (Tempo Real Ativo)' : 'Modo Offline / Memória Local'}
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-500">
+                Sincronização em tempo real entre o catálogo dos clientes e o painel administrativo.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveSupabaseCredentials} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1">
+                <Globe className="w-3.5 h-3.5 text-stone-500" />
+                URL do Projeto Supabase
+              </label>
+              <input
+                type="text"
+                placeholder="https://xyzcompany.supabase.co"
+                value={supabaseUrlInput}
+                onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                className="w-full text-xs font-mono px-3 py-2 border border-stone-300 rounded-xl focus:outline-hidden focus:border-[#302C9B] bg-stone-50 focus:bg-white transition-colors"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1">
+                <Database className="w-3.5 h-3.5 text-stone-500" />
+                Chave Anon (public) do Supabase
+              </label>
+              <input
+                type="password"
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+                value={supabaseKeyInput}
+                onChange={(e) => setSupabaseKeyInput(e.target.value)}
+                className="w-full text-xs font-mono px-3 py-2 border border-stone-300 rounded-xl focus:outline-hidden focus:border-[#302C9B] bg-stone-50 focus:bg-white transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                const fullSql = `-- SCRIPT COMPLETO DE CRIAÇÃO E PERMISSÕES DO SUPABASE
+-- TABELA CATEGORIAS
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  image_url text default '',
+  image_zoom integer default 0,
+  order_index integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+alter table public.categories add column if not exists image_zoom integer default 0;
+
+-- TABELA PRODUTOS
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text default '',
+  price numeric default 0,
+  unit text default 'un',
+  image_url text default '',
+  image_zoom integer default 0,
+  category text default 'Geral',
+  order_index integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+alter table public.products add column if not exists image_zoom integer default 0;
+
+-- TABELA CONFIGURAÇÕES
+create table if not exists public.settings (
+  id text primary key default 'store_config',
+  brand_name text default '',
+  brand_phone text default '',
+  logo_url text default '',
+  logo_zoom integer default 0,
+  show_category_images boolean default false,
+  admin_password text default 'abc1234',
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+alter table public.settings add column if not exists show_category_images boolean default false;
+alter table public.settings add column if not exists logo_zoom integer default 0;
+
+-- HABILITAR SEGURANÇA (RLS) COM POLÍTICAS DE ACESSO TOTAL
+alter table public.categories enable row level security;
+alter table public.products enable row level security;
+alter table public.settings enable row level security;
+
+drop policy if exists "Acesso Total Categorias" on public.categories;
+create policy "Acesso Total Categorias" on public.categories for all using (true) with check (true);
+
+drop policy if exists "Acesso Total Produtos" on public.products;
+create policy "Acesso Total Produtos" on public.products for all using (true) with check (true);
+
+drop policy if exists "Acesso Total Configurações" on public.settings;
+create policy "Acesso Total Configurações" on public.settings for all using (true) with check (true);
+
+-- HABILITAR SINCRONIZAÇÃO EM TEMPO REAL
+alter publication supabase_realtime add table public.categories;
+alter publication supabase_realtime add table public.products;
+alter publication supabase_realtime add table public.settings;`;
+                navigator.clipboard.writeText(fullSql);
+                setCopiedAllSql(true);
+                setTimeout(() => setCopiedAllSql(false), 2500);
+              }}
+              className="py-2 px-3 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 active:scale-95 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {copiedAllSql ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700">Script SQL Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-stone-600" />
+                  <span>Copiar Script SQL do Supabase</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSavingSupabase}
+              className="py-2 px-4 text-xs font-black text-white bg-[#302C9B] hover:bg-[#25227B] active:scale-95 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              {isSavingSupabase ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>Salvar Conexão e Conectar</span>
+            </button>
+          </div>
+
+          {supabaseSavedMessage && (
+            <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{supabaseSavedMessage}</span>
+            </div>
+          )}
+
+          <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200/60 text-[11px] text-stone-600 space-y-1">
+            <p>
+              💡 <strong>Dica para o Vercel:</strong> Caso hospede no Vercel, você também pode adicionar em <strong>Settings &gt; Environment Variables</strong> do seu projeto as variáveis: <code className="font-mono font-bold text-stone-800">VITE_SUPABASE_URL</code> e <code className="font-mono font-bold text-stone-800">VITE_SUPABASE_ANON_KEY</code>.
+            </p>
+          </div>
         </form>
       </div>
 
