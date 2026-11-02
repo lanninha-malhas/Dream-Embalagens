@@ -82,8 +82,8 @@ export const CartPage: React.FC<CartPageProps> = ({
         {/* Lista de itens ou Estado Vazio */}
         {itemsInCart.length === 0 ? (
           <div className="text-center py-12 px-4 space-y-3.5">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-50 border border-cyan-100 mx-auto flex items-center justify-center text-[#002B49] shadow-xs">
-              <ShoppingCart className="w-8 h-8 text-[#002B49] stroke-[2.2]" />
+            <div className="w-16 h-16 rounded-2xl bg-[#302C9B]/10 border border-[#302C9B]/20 mx-auto flex items-center justify-center text-[#302C9B] shadow-xs">
+              <ShoppingCart className="w-8 h-8 text-[#302C9B] stroke-[2.2]" />
             </div>
             <h2 className="font-bold text-stone-800 text-sm">
               Seu carrinho está vazio
@@ -91,7 +91,7 @@ export const CartPage: React.FC<CartPageProps> = ({
             <button
               type="button"
               onClick={onBackToCatalog}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#302C9B] hover:bg-[#25227B] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Retornar ao Catálogo</span>
@@ -114,7 +114,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                     {/* Lado esquerdo: Pontinho indicador + Nome do Produto + Cálculo (ex: 01 x R$ 22,90 = R$ 22,90) */}
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
                       <span
-                        className="w-2.5 h-2.5 rounded-full bg-[#002B49] shrink-0 mt-1.5"
+                        className="w-2.5 h-2.5 rounded-full bg-[#302C9B] shrink-0 mt-1.5"
                         aria-hidden="true"
                       />
                       <div className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                       </div>
                     </div>
 
-                    {/* Lado direito: Stepper estilizado no padrão da imagem com paleta do catálogo */}
+                    {/* Lado direito: Stepper estilizado no padrão com paleta do catálogo */}
                     <div className="flex items-center bg-slate-100/90 border border-slate-200/90 rounded-xl p-1 gap-1 shrink-0">
                       <button
                         type="button"
@@ -145,7 +145,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                       <button
                         type="button"
                         onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-                        className="w-7 h-7 rounded-lg bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] font-black flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs transition-transform"
+                        className="w-7 h-7 rounded-lg bg-[#302C9B] hover:bg-[#25227B] text-white font-black flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs transition-transform"
                         aria-label={`Aumentar quantidade de ${product.name}`}
                       >
                         <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -175,7 +175,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                 <span className="text-sm font-bold text-stone-700">
                   Total do Pedido:
                 </span>
-                <span className="text-xl font-black text-[#002B49] tabular-nums tracking-tight">
+                <span className="text-xl font-black text-[#302C9B] tabular-nums tracking-tight">
                   {formatBRL(totalOrderPrice)}
                 </span>
               </div>

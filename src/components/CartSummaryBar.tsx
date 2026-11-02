@@ -22,31 +22,31 @@ export const CartSummaryBar: React.FC<CartSummaryBarProps> = ({
       <div className="max-w-md mx-auto pointer-events-auto">
         <button
           onClick={onOpenCart}
-          className="w-full bg-[#22CBD0] hover:bg-[#1db9be] active:scale-[0.98] text-[#002B49] p-3.5 rounded-2xl shadow-xl flex items-center justify-between transition-all border border-[#22CBD0]/40 cursor-pointer"
+          className="w-full bg-[#302C9B] hover:bg-[#25227B] active:scale-[0.98] text-white p-3.5 rounded-2xl shadow-xl flex items-center justify-between transition-all border border-indigo-900/30 cursor-pointer"
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#002B49] flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 text-[#22CBD0]" />
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <ShoppingCart className="w-4 h-4 text-white" />
             </div>
             <div className="text-left">
-              <p className="text-xs font-semibold text-[#002B49]/80 leading-none">
+              <p className="text-xs font-medium text-white/85 leading-none">
                 {totalItems} {totalItems === 1 ? 'item selecionado' : 'itens selecionados'}
               </p>
               {hidePrice ? (
-                <p className="text-sm font-black text-[#002B49] leading-tight mt-0.5">
+                <p className="text-sm font-black text-white leading-tight mt-0.5">
                   Ver Pedido / Cotação
                 </p>
               ) : (
-                <p className="text-base font-black text-[#002B49] leading-tight tabular-nums mt-0.5">
+                <p className="text-base font-black text-white leading-tight tabular-nums mt-0.5">
                   {formatBRL(totalPrice)}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-[#002B49] text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs">
+          <div className="flex items-center gap-1.5 bg-white text-[#302C9B] font-black text-xs py-2 px-3.5 rounded-xl shadow-xs">
             <span>Ver Pedido</span>
-            <ArrowRight className="w-4 h-4 text-[#22CBD0]" />
+            <ArrowRight className="w-4 h-4 text-[#302C9B]" />
           </div>
         </button>
       </div>

@@ -58,15 +58,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         aria-modal="true"
         aria-labelledby="cart-title"
       >
-        {/* Header / Grab Handle com paleta Navy e detalhes Turquesa */}
-        <div className="bg-[#002B49] text-white px-4 pt-3 pb-3.5 relative shrink-0">
-          <div className="w-10 h-1 bg-[#22CBD0] rounded-full mx-auto mb-2 sm:hidden" />
+        {/* Header / Grab Handle com paleta royal indigo #302C9B */}
+        <div className="bg-[#302C9B] text-white px-4 pt-3 pb-3.5 relative shrink-0">
+          <div className="w-10 h-1 bg-white/40 rounded-full mx-auto mb-2 sm:hidden" />
           <div className="flex items-center justify-between">
             <div>
               <h2 id="cart-title" className="text-base font-bold text-white">
                 Carrinho de Compras
               </h2>
-              <p className="text-[11px] text-[#22CBD0] font-medium">
+              <p className="text-[11px] text-white/80 font-medium">
                 {totalItems} {totalItems === 1 ? 'item' : 'itens'} adicionados
               </p>
             </div>
@@ -97,18 +97,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <div className="overflow-y-auto px-4 py-3 space-y-3 flex-1">
           {itemsInCart.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <div className="w-14 h-14 rounded-full bg-cyan-50 mx-auto flex items-center justify-center text-cyan-700 mb-3">
+              <div className="w-14 h-14 rounded-full bg-[#302C9B]/10 mx-auto flex items-center justify-center text-[#302C9B] mb-3">
                 <Store className="w-7 h-7" />
               </div>
               <h3 className="font-semibold text-stone-800 text-sm">
                 Seu carrinho está vazio
               </h3>
               <p className="text-xs text-stone-500 mt-1 max-w-xs mx-auto">
-                Volte ao catálogo e selecione as quantidades de sacos kraft para seu pedido.
+                Volte ao catálogo e selecione as quantidades de produtos para seu pedido.
               </p>
               <button
                 onClick={onClose}
-                className="mt-4 px-4 py-2 bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] text-xs font-bold rounded-xl cursor-pointer"
+                className="mt-4 px-4 py-2 bg-[#302C9B] hover:bg-[#25227B] text-white text-xs font-bold rounded-xl cursor-pointer"
               >
                 Explorar Produtos
               </button>
@@ -153,10 +153,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       </span>
                       <button
                         onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-                        className="w-7 h-7 rounded-md flex items-center justify-center bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-md flex items-center justify-center bg-[#302C9B] hover:bg-[#25227B] text-white active:scale-95 cursor-pointer"
                         aria-label={`Aumentar ${product.name}`}
                       >
-                        <Plus className="w-3.5 h-3.5 text-[#002B49]" />
+                        <Plus className="w-3.5 h-3.5 text-white" />
                       </button>
                     </div>
                   </div>

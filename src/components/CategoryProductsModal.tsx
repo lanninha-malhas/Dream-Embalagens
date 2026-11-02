@@ -59,8 +59,8 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                 />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
-                <FolderOpen className="w-5 h-5 text-cyan-700" />
+              <div className="w-9 h-9 rounded-xl bg-[#302C9B]/10 text-[#302C9B] flex items-center justify-center shrink-0">
+                <FolderOpen className="w-5 h-5 text-[#302C9B]" />
               </div>
             )}
             <div className="min-w-0">
@@ -100,7 +100,7 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                   key={product.id}
                   className={`p-3.5 bg-white rounded-xl border transition-all duration-150 ${
                     isSelected
-                      ? 'border-[#22CBD0] shadow-sm ring-1 ring-[#22CBD0]/50 bg-cyan-50/20'
+                      ? 'border-[#302C9B] shadow-sm ring-1 ring-[#302C9B]/30 bg-[#302C9B]/5'
                       : 'border-stone-200 hover:border-stone-300'
                   }`}
                 >
@@ -131,7 +131,7 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                         {formatBRL(product.price)}
                       </span>
                       {isSelected && (
-                        <span className="text-[11px] font-semibold text-cyan-800 block mt-0.5 tabular-nums">
+                        <span className="text-[11px] font-semibold text-[#302C9B] block mt-0.5 tabular-nums">
                           Subtotal: {formatBRL(product.price * quantity)}
                         </span>
                       )}
@@ -143,10 +143,10 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                         <button
                           type="button"
                           onClick={() => onUpdateQuantity(product.id, step)}
-                          className="h-8.5 px-3 rounded-lg bg-[#22CBD0] hover:bg-[#1db9be] active:bg-[#18a6ab] text-[#002B49] text-xs font-bold flex items-center gap-1 active:scale-95 transition-all shadow-xs cursor-pointer"
+                          className="h-8.5 px-3 rounded-lg bg-[#302C9B] hover:bg-[#25227B] active:bg-[#1F1B68] text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition-all shadow-xs cursor-pointer"
                           aria-label={`Adicionar ${product.name} ao pedido`}
                         >
-                          <Plus className="w-3.5 h-3.5 text-[#002B49]" />
+                          <Plus className="w-3.5 h-3.5 text-white" />
                           <span>Adicionar</span>
                         </button>
                       ) : (
@@ -170,11 +170,11 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(product.id, quantity + step)}
-                            className="w-7.5 h-7.5 rounded-md flex items-center justify-center bg-[#22CBD0] hover:bg-[#1db9be] active:bg-[#18a6ab] text-[#002B49] active:scale-95 transition-all shadow-xs cursor-pointer"
+                            className="w-7.5 h-7.5 rounded-md flex items-center justify-center bg-[#302C9B] hover:bg-[#25227B] active:bg-[#1F1B68] text-white active:scale-95 transition-all shadow-xs cursor-pointer"
                             title="Aumentar quantidade"
                             aria-label={`Aumentar quantidade de ${product.name}`}
                           >
-                            <Plus className="w-3.5 h-3.5 text-[#002B49]" />
+                            <Plus className="w-3.5 h-3.5 text-white" />
                           </button>
                         </div>
                       )}
@@ -204,14 +204,14 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
             }}
             className={`py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
               totalCartCount > 0
-                ? 'bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49]'
+                ? 'bg-[#302C9B] hover:bg-[#25227B] text-white'
                 : 'bg-stone-100 text-stone-500 hover:text-stone-800'
             }`}
           >
-            <ShoppingCart className="w-4 h-4 text-[#002B49]" />
+            <ShoppingCart className="w-4 h-4 text-white" />
             <span>Ver Carrinho</span>
             {totalCartCount > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#002B49] text-white text-[11px] font-black flex items-center justify-center">
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-white text-[#302C9B] text-[11px] font-black flex items-center justify-center">
                 {totalCartCount}
               </span>
             )}

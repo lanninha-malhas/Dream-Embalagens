@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <linearGradient id="pwaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#22CBD0" />
-      <stop offset="100%" stop-color="#0E9AA0" />
+      <stop offset="0%" stop-color="#302C9B" />
+      <stop offset="100%" stop-color="#1F1B68" />
     </linearGradient>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#002B49" flood-opacity="0.25" />
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1F1B68" flood-opacity="0.25" />
     </filter>
   </defs>
   <!-- Background with subtle rounded shape -->
@@ -16,20 +16,20 @@
 
   <!-- Shopping / Kraft Bag Graphic -->
   <g filter="url(#shadow)">
-    <!-- Bag Body (Navy #002B49) -->
-    <path d="M 140 180 L 372 180 L 396 410 C 398 424 386 436 372 436 L 140 436 C 126 436 114 424 116 410 Z" fill="#002B49" />
+    <!-- Bag Body (Pure White) -->
+    <path d="M 140 180 L 372 180 L 396 410 C 398 424 386 436 372 436 L 140 436 C 126 436 114 424 116 410 Z" fill="#FFFFFF" />
     
     <!-- Bag Fold Highlight -->
-    <path d="M 140 180 L 372 180 L 360 215 L 152 215 Z" fill="#0A3C63" opacity="0.6" />
+    <path d="M 140 180 L 372 180 L 360 215 L 152 215 Z" fill="#F1F0FD" opacity="0.9" />
     
     <!-- Handle -->
     <path d="M 196 180 C 196 110 316 110 316 180" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" />
     
-    <!-- White / Teal Motif on Bag (Embalagens box / kraft icon) -->
-    <rect x="216" y="260" width="80" height="80" rx="16" fill="#22CBD0" />
-    <path d="M 236 300 L 250 314 L 276 284" fill="none" stroke="#002B49" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Motif on Bag -->
+    <rect x="216" y="260" width="80" height="80" rx="16" fill="#302C9B" />
+    <path d="M 236 300 L 250 314 L 276 284" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
     
-    <!-- Decorative Kraft lines -->
-    <line x1="170" y1="380" x2="342" y2="380" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="4" stroke-linecap="round" />
+    <!-- Decorative lines -->
+    <line x1="170" y1="380" x2="342" y2="380" stroke="#302C9B" stroke-opacity="0.2" stroke-width="4" stroke-linecap="round" />
   </g>
 </svg>

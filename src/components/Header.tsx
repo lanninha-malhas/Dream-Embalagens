@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
         {currentView === 'admin' ? (
           <div className="flex items-center justify-between w-full">
             <h1 className="text-sm font-bold tracking-tight text-stone-900 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-600" />
+              <ShieldCheck className="w-4 h-4 text-[#302C9B]" />
               <span>Painel</span>
             </h1>
             <div className="flex items-center gap-1.5">

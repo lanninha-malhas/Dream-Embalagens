@@ -137,7 +137,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         aria-modal="true"
       >
         {/* Modal Header */}
-        <div className="bg-[#002B49] text-white px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-[#302C9B] text-white px-4 py-3 flex items-center justify-between shrink-0">
           <h3 className="font-bold text-sm">
             {initialProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}
           </h3>
@@ -171,7 +171,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 setName(e.target.value);
                 if (error) setError(null);
               }}
-              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
           </div>
 
@@ -196,7 +196,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     onClick={() => setCategory(cat.name)}
                     className={`text-[11px] py-1 px-2.5 rounded-lg border font-medium transition-colors cursor-pointer ${
                       category.trim().toLowerCase() === cat.name.trim().toLowerCase()
-                        ? 'bg-[#22CBD0] text-[#002B49] border-[#22CBD0] font-bold shadow-2xs'
+                        ? 'bg-[#302C9B] text-white border-[#302C9B] font-bold shadow-2xs'
                         : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200'
                     }`}
                   >
@@ -211,7 +211,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               list="categories-list"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
             <datalist id="categories-list">
               {categories.map((c) => (
@@ -230,7 +230,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 type="text"
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white outline-none"
+                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white outline-none"
               />
             </div>
 
@@ -242,7 +242,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white outline-none"
+                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white outline-none"
               />
             </div>
           </div>
@@ -276,7 +276,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       setCostPriceStr(e.target.value);
                       if (error) setError(null);
                     }}
-                    className="w-full pl-6 pr-1.5 py-2 text-xs font-semibold text-stone-800 bg-white rounded-xl border border-stone-300 focus:border-[#22CBD0] outline-none"
+                    className="w-full pl-6 pr-1.5 py-2 text-xs font-semibold text-stone-800 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none"
                   />
                 </div>
               </div>
@@ -298,7 +298,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       setSalePriceStr(e.target.value);
                       if (error) setError(null);
                     }}
-                    className="w-full pl-6 pr-1.5 py-2 text-xs font-bold text-stone-900 bg-white rounded-xl border border-stone-300 focus:border-[#22CBD0] outline-none"
+                    className="w-full pl-6 pr-1.5 py-2 text-xs font-bold text-stone-900 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none"
                   />
                 </div>
               </div>
@@ -351,7 +351,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 step="1"
                 value={incrementStr}
                 onChange={(e) => setIncrementStr(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
@@ -365,7 +365,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 step="1"
                 value={stockStr}
                 onChange={(e) => setStockStr(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
@@ -377,7 +377,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 type="text"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white outline-none"
+                className="w-full px-2.5 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white outline-none"
               />
             </div>
           </div>
@@ -391,7 +391,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:bg-white focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
           </div>
 
@@ -406,9 +406,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 px-3 text-xs font-black text-[#002B49] bg-[#22CBD0] hover:bg-[#1db9be] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              className="flex-1 py-2.5 px-3 text-xs font-black text-white bg-[#302C9B] hover:bg-[#25227B] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
             >
-              <Save className="w-3.5 h-3.5 text-[#002B49]" />
+              <Save className="w-3.5 h-3.5 text-white" />
               <span>Salvar Produto</span>
             </button>
           </div>

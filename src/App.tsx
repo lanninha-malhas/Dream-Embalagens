@@ -401,7 +401,7 @@ export default function App() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar categoria ou produto..."
-                  className="w-full h-10 pl-9 pr-8 text-xs bg-stone-50 hover:bg-stone-100/70 focus:bg-white rounded-xl border border-stone-200/90 focus:border-[#22CBD0] focus:ring-1 focus:ring-[#22CBD0] outline-none text-stone-900 placeholder:text-stone-400 transition-all shadow-2xs"
+                  className="w-full h-10 pl-9 pr-8 text-xs bg-stone-50 hover:bg-stone-100/70 focus:bg-white rounded-xl border border-stone-200/90 focus:border-[#302C9B] focus:ring-1 focus:ring-[#302C9B] outline-none text-stone-900 placeholder:text-stone-400 transition-all shadow-2xs"
                   aria-label="Buscar categorias ou produtos"
                 />
                 {searchQuery && (
@@ -422,7 +422,7 @@ export default function App() {
                 onClick={() => handleNavigate('cart')}
                 className={`h-10 px-3 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all active:scale-[0.97] cursor-pointer whitespace-nowrap shadow-2xs ${
                   totalCartCount > 0
-                    ? 'bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] border-[#22CBD0] font-bold'
+                    ? 'bg-[#302C9B] hover:bg-[#25227B] text-white border-[#302C9B] font-bold'
                     : 'bg-stone-50 hover:bg-stone-100 border-stone-200/90 text-stone-700 font-medium'
                 }`}
                 aria-label="Abrir Carrinho de Compras"
@@ -430,7 +430,7 @@ export default function App() {
                 <ShoppingCart className="w-4 h-4" />
                 <span className="text-xs">Meu Carrinho</span>
                 {totalCartCount > 0 && (
-                  <span className="min-w-[19px] h-[19px] px-1 rounded-full bg-[#002B49] text-white text-[11px] font-black flex items-center justify-center leading-none shadow-2xs">
+                  <span className="min-w-[19px] h-[19px] px-1 rounded-full bg-white text-[#302C9B] text-[11px] font-black flex items-center justify-center leading-none shadow-2xs">
                     {totalCartCount}
                   </span>
                 )}
@@ -443,11 +443,11 @@ export default function App() {
         <main className="flex-1 overflow-y-auto px-3.5 py-3.5">
           {isLoadingCloud ? (
             <div className="py-20 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-700 flex items-center justify-center mx-auto animate-pulse">
+              <div className="w-12 h-12 rounded-2xl bg-[#302C9B]/10 text-[#302C9B] flex items-center justify-center mx-auto animate-pulse">
                 <Cloud className="w-6 h-6" />
               </div>
               <p className="text-xs font-semibold text-stone-700 flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#302C9B]" />
                 <span>Carregando catálogo da nuvem...</span>
               </p>
             </div>
@@ -459,7 +459,7 @@ export default function App() {
               {/* Seção CATEGORIAS */}
               <div className="flex items-center justify-between pt-0.5 px-0.5">
                 <div className="flex items-center gap-1.5">
-                  <FolderOpen className="w-4 h-4 text-cyan-700" />
+                  <FolderOpen className="w-4 h-4 text-[#302C9B]" />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800">
                     {searchQuery.trim() ? 'Categorias Encontradas' : 'CATEGORIAS'}
                   </h3>
@@ -474,7 +474,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="text-cyan-700 font-semibold hover:underline cursor-pointer"
+                      className="text-[#302C9B] font-semibold hover:underline cursor-pointer"
                     >
                       Limpar
                     </button>
@@ -496,7 +496,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-cyan-900 font-semibold bg-cyan-100 hover:bg-cyan-200 rounded-lg cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1 px-3.5 py-2 text-xs text-white font-bold bg-[#302C9B] hover:bg-[#25227B] rounded-xl cursor-pointer transition-colors shadow-xs"
                       >
                         Limpar pesquisa
                       </button>

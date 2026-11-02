@@ -395,8 +395,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-800 flex items-center justify-center">
-              <FolderOpen className="w-4 h-4 text-cyan-800" />
+            <div className="w-7 h-7 rounded-lg bg-[#302C9B]/10 text-[#302C9B] flex items-center justify-center">
+              <FolderOpen className="w-4 h-4 text-[#302C9B]" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-stone-900">
@@ -458,7 +458,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               ) : (
                 <label
                   htmlFor="new-category-image-input"
-                  className="w-14 h-14 rounded-2xl border border-dashed border-stone-300 hover:border-[#22CBD0] bg-white hover:bg-stone-50 flex items-center justify-center text-stone-400 hover:text-cyan-700 transition-colors cursor-pointer shadow-2xs shrink-0"
+                  className="w-14 h-14 rounded-2xl border border-dashed border-stone-300 hover:border-[#302C9B] bg-white hover:bg-stone-50 flex items-center justify-center text-stone-400 hover:text-[#302C9B] transition-colors cursor-pointer shadow-2xs shrink-0"
                   title="Adicionar imagem quadrada da categoria"
                 >
                   <ImageIcon className="w-5 h-5" />
@@ -470,14 +470,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               type="text"
               value={newCatName}
               onChange={(e) => setNewCatName(e.target.value)}
-              className="flex-1 px-3 py-2 text-xs bg-white rounded-lg border border-stone-300 focus:border-[#22CBD0] focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="flex-1 px-3 py-2 text-xs bg-white rounded-lg border border-stone-300 focus:border-[#302C9B] focus:ring-1 focus:ring-[#302C9B] outline-none"
               required
             />
             <button
               type="submit"
-              className="py-2 px-3.5 bg-[#22CBD0] hover:bg-[#1db9be] active:scale-95 text-[#002B49] text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
+              className="py-2 px-3.5 bg-[#302C9B] hover:bg-[#25227B] active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
             >
-              <FolderPlus className="w-3.5 h-3.5 text-[#002B49]" />
+              <FolderPlus className="w-3.5 h-3.5 text-white" />
               <span>Salvar</span>
             </button>
           </div>
@@ -487,11 +487,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="space-y-1.5 pt-2 border-t border-stone-200/60">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-stone-700 flex items-center gap-1.5">
-                  <ZoomIn className="w-3.5 h-3.5 text-cyan-700" />
+                  <ZoomIn className="w-3.5 h-3.5 text-[#302C9B]" />
                   <span>Ajuste de Zoom da Imagem</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-cyan-100/70 text-[#002B49] border border-cyan-200">
+                  <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-[#302C9B]/10 text-[#302C9B] border border-[#302C9B]/20">
                     {newCatZoom > 0 ? `+${newCatZoom}%` : `${newCatZoom}%`}
                     {newCatZoom === 0 && ' (Centro)'}
                   </span>
@@ -507,14 +507,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   step="1"
                   value={newCatZoom}
                   onChange={(e) => setNewCatZoom(Number(e.target.value))}
-                  className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#22CBD0]"
+                  className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#302C9B]"
                 />
                 <div className="flex justify-between items-center text-[10px] text-stone-500 font-semibold px-0.5 mt-1">
                   <span className="flex items-center gap-0.5">
                     <ZoomOut className="w-2.5 h-2.5 text-stone-400" />
                     <span>-50%</span>
                   </span>
-                  <span className="text-[#002B49] font-bold">0 (Centro)</span>
+                  <span className="text-[#302C9B] font-bold">0 (Centro)</span>
                   <span className="flex items-center gap-0.5">
                     <span>+50%</span>
                     <ZoomIn className="w-2.5 h-2.5 text-stone-400" />
@@ -525,8 +525,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           )}
 
           {newCatImage && (
-            <p className="text-[10px] text-cyan-800 font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-cyan-600" />
+            <p className="text-[10px] text-[#302C9B] font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-[#302C9B]" />
               Imagem quadrada anexada com container de fundo branco.
             </p>
           )}
@@ -624,16 +624,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               Produtos do Catálogo ({products.length})
             </h3>
             <p className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
-              <ArrowUpDown className="w-3 h-3 text-cyan-700 shrink-0" />
+              <ArrowUpDown className="w-3 h-3 text-[#302C9B] shrink-0" />
               <span>Arraste ou use as setas para ordenar</span>
             </p>
           </div>
 
           <button
             onClick={handleOpenAdd}
-            className="py-2 px-3 bg-[#22CBD0] hover:bg-[#1db9be] active:scale-95 text-[#002B49] text-xs font-black rounded-xl flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+            className="py-2 px-3 bg-[#302C9B] hover:bg-[#25227B] active:scale-95 text-white text-xs font-black rounded-xl flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-[#002B49]" />
+            <Plus className="w-4 h-4 text-white" />
             <span>Cadastrar Produto</span>
           </button>
         </div>
@@ -646,7 +646,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onClick={() => setSelectedCategoryFilter('all')}
               className={`py-1 px-2.5 rounded-lg border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                 selectedCategoryFilter === 'all'
-                  ? 'bg-[#22CBD0] text-[#002B49] border-[#22CBD0]'
+                  ? 'bg-[#302C9B] text-white border-[#302C9B]'
                   : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
               }`}
             >
@@ -665,7 +665,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onClick={() => setSelectedCategoryFilter(cat.name)}
                   className={`py-1 px-2.5 rounded-lg border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                     selectedCategoryFilter === cat.name
-                      ? 'bg-[#22CBD0] text-[#002B49] border-[#22CBD0]'
+                      ? 'bg-[#302C9B] text-white border-[#302C9B]'
                       : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
                   }`}
                 >
@@ -700,9 +700,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onDragEnd={handleDragEnd}
                   className={`p-3 bg-white rounded-xl border transition-all duration-150 select-none ${
                     isDragging
-                      ? 'opacity-40 scale-[0.98] border-dashed border-[#22CBD0] bg-cyan-50/70 shadow-inner'
+                      ? 'opacity-40 scale-[0.98] border-dashed border-[#302C9B] bg-[#302C9B]/5 shadow-inner'
                       : isOver
-                      ? 'border-[#22CBD0] ring-2 ring-cyan-200 shadow-md bg-cyan-50/40 scale-[1.01]'
+                      ? 'border-[#302C9B] ring-2 ring-[#302C9B]/20 shadow-md bg-[#302C9B]/5 scale-[1.01]'
                       : product.available
                       ? 'border-stone-200 hover:border-stone-300 shadow-2xs'
                       : 'border-stone-200 bg-stone-50/70 opacity-75'
@@ -712,7 +712,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     {/* Drag Handle, Order #, Up/Down micro-actions */}
                     <div className="flex flex-col items-center justify-between shrink-0 self-stretch py-0.5 select-none pr-1.5 border-r border-stone-100">
                       <div
-                        className="cursor-grab active:cursor-grabbing p-1 -m-1 text-stone-400 hover:text-cyan-700 transition-colors"
+                        className="cursor-grab active:cursor-grabbing p-1 -m-1 text-stone-400 hover:text-[#302C9B] transition-colors"
                         title="Clique e arraste para ordenar"
                         aria-label="Arrastar produto"
                       >
@@ -761,7 +761,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             {product.name}
                           </h4>
                           {product.category && (
-                            <span className="text-[10px] bg-cyan-100 text-[#002B49] font-bold px-1.5 py-0.2 rounded shrink-0">
+                            <span className="text-[10px] bg-[#302C9B]/10 text-[#302C9B] font-bold px-1.5 py-0.2 rounded shrink-0">
                               {product.category}
                             </span>
                           )}
@@ -829,7 +829,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {/* SEÇÃO 3: CONFIGURAÇÕES */}
       <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-4">
         <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
-          <Settings className="w-4 h-4 text-cyan-700" />
+          <Settings className="w-4 h-4 text-[#302C9B]" />
           <h3 className="text-sm font-bold text-stone-900">
             Configurações
           </h3>
@@ -840,7 +840,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="bg-stone-50/80 rounded-2xl border border-stone-200/90 p-3.5 space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                <ImageIcon className="w-4 h-4 text-cyan-700" />
+                <ImageIcon className="w-4 h-4 text-[#302C9B]" />
                 <span>Imagem do Cabeçalho (Marca / Nome)</span>
               </label>
 
@@ -884,8 +884,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               }}
               className={`border-2 border-dashed rounded-xl p-3.5 transition-all flex flex-col items-center justify-center text-center cursor-pointer select-none ${
                 isLogoDragOver
-                  ? 'border-[#22CBD0] bg-cyan-50/70 scale-[0.99]'
-                  : 'border-stone-300 hover:border-[#22CBD0] bg-white hover:bg-stone-50/50'
+                  ? 'border-[#302C9B] bg-[#302C9B]/5 scale-[0.99]'
+                  : 'border-stone-300 hover:border-[#302C9B] bg-white hover:bg-stone-50/50'
               }`}
             >
               <input
@@ -898,8 +898,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   if (file) handleLogoUpload(file);
                 }}
               />
-              <div className="w-9 h-9 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-800 flex items-center justify-center mb-1.5 shadow-2xs">
-                <Upload className="w-4 h-4 text-cyan-700" />
+              <div className="w-9 h-9 rounded-xl bg-[#302C9B]/10 border border-[#302C9B]/20 text-[#302C9B] flex items-center justify-center mb-1.5 shadow-2xs">
+                <Upload className="w-4 h-4 text-[#302C9B]" />
               </div>
               <p className="text-xs font-bold text-stone-800">
                 Clique aqui para escolher ou arraste a imagem
@@ -938,11 +938,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-stone-700 flex items-center gap-1.5">
-                    <ZoomIn className="w-3.5 h-3.5 text-cyan-700" />
+                    <ZoomIn className="w-3.5 h-3.5 text-[#302C9B]" />
                     <span>Ajuste de Zoom do Cabeçalho</span>
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-cyan-100/70 text-[#002B49] border border-cyan-200">
+                    <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-[#302C9B]/10 text-[#302C9B] border border-[#302C9B]/20">
                       {(localSettings.logoZoom ?? 0) > 0 ? `+${localSettings.logoZoom}%` : `${localSettings.logoZoom ?? 0}%`}
                       {(localSettings.logoZoom ?? 0) === 0 && ' (Centro)'}
                     </span>
@@ -963,14 +963,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         logoZoom: Number(e.target.value),
                       })
                     }
-                    className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#22CBD0]"
+                    className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#302C9B]"
                   />
                   <div className="flex justify-between items-center text-[10px] text-stone-500 font-semibold px-0.5 mt-1">
                     <span className="flex items-center gap-0.5">
                       <ZoomOut className="w-2.5 h-2.5 text-stone-400" />
                       <span>-50%</span>
                     </span>
-                    <span className="text-[#002B49] font-bold">0 (Centro)</span>
+                    <span className="text-[#302C9B] font-bold">0 (Centro)</span>
                     <span className="flex items-center gap-0.5">
                       <span>+50%</span>
                       <ZoomIn className="w-2.5 h-2.5 text-stone-400" />
@@ -990,13 +990,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onChange={(e) =>
                 setLocalSettings({ ...localSettings, storeName: e.target.value })
               }
-              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-cyan-700" />
+              <Phone className="w-3.5 h-3.5 text-[#302C9B]" />
               <span>WhatsApp ( Pedidos )</span>
             </label>
             <input
@@ -1006,7 +1006,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onChange={(e) =>
                 setLocalSettings({ ...localSettings, whatsappNumber: maskPhone(e.target.value) })
               }
-              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
           </div>
 
@@ -1020,7 +1020,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onChange={(e) =>
                 setLocalSettings({ ...localSettings, adminPassword: e.target.value })
               }
-              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] focus:ring-1 focus:ring-[#22CBD0] outline-none"
+              className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:ring-1 focus:ring-[#302C9B] outline-none"
             />
           </div>
 
@@ -1036,7 +1036,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     showCategoryImages: e.target.checked,
                   })
                 }
-                className="mt-0.5 w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500 border-stone-300 cursor-pointer"
+                className="mt-0.5 w-4 h-4 rounded text-[#302C9B] focus:ring-[#302C9B] border-stone-300 cursor-pointer"
               />
               <div className="flex-1">
                 <span className="text-xs font-bold text-stone-800 block">
@@ -1052,9 +1052,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="pt-2 flex items-center justify-end">
             <button
               type="submit"
-              className="w-full sm:w-auto py-2.5 px-5 text-xs font-black text-[#002B49] bg-[#22CBD0] hover:bg-[#1db9be] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              className="w-full sm:w-auto py-2.5 px-5 text-xs font-black text-white bg-[#302C9B] hover:bg-[#25227B] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
             >
-              <Save className="w-3.5 h-3.5 text-[#002B49]" />
+              <Save className="w-3.5 h-3.5 text-white" />
               <span>Salvar Configurações</span>
             </button>
           </div>
@@ -1092,16 +1092,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     setCopiedSql(true);
                     setTimeout(() => setCopiedSql(false), 2500);
                   }}
-                  className="px-2.5 py-1 bg-[#22CBD0] hover:bg-[#1db9be] text-[#002B49] rounded-md text-[10px] font-bold shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                  className="px-2.5 py-1 bg-[#302C9B] hover:bg-[#25227B] text-white rounded-md text-[10px] font-bold shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                 >
                   {copiedSql ? (
                     <>
-                      <Check className="w-3 h-3 text-[#002B49]" />
+                      <Check className="w-3 h-3 text-white" />
                       <span>Copiado!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3 h-3 text-[#002B49]" />
+                      <Copy className="w-3 h-3 text-white" />
                       <span>Copiar SQL</span>
                     </>
                   )}
@@ -1181,7 +1181,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="text"
                   value={editCatName}
                   onChange={(e) => setEditCatName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#22CBD0] outline-none"
+                  className="w-full px-3 py-2 text-xs bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none"
                   required
                 />
               </div>
@@ -1254,11 +1254,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <div className="space-y-1.5 pt-2.5 mt-2.5 border-t border-stone-100">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-stone-700 flex items-center gap-1.5">
-                        <ZoomIn className="w-3.5 h-3.5 text-cyan-700" />
+                        <ZoomIn className="w-3.5 h-3.5 text-[#302C9B]" />
                         <span>Ajuste de Zoom da Imagem</span>
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-cyan-100/70 text-[#002B49] border border-cyan-200">
+                        <span className="font-bold text-[11px] px-2 py-0.5 rounded-md bg-[#302C9B]/10 text-[#302C9B] border border-[#302C9B]/20">
                           {editCatZoom > 0 ? `+${editCatZoom}%` : `${editCatZoom}%`}
                           {editCatZoom === 0 && ' (Centro)'}
                         </span>
@@ -1274,14 +1274,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         step="1"
                         value={editCatZoom}
                         onChange={(e) => setEditCatZoom(Number(e.target.value))}
-                        className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#22CBD0]"
+                        className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#302C9B]"
                       />
                       <div className="flex justify-between items-center text-[10px] text-stone-500 font-semibold px-0.5 mt-1">
                         <span className="flex items-center gap-0.5">
                           <ZoomOut className="w-2.5 h-2.5 text-stone-400" />
                           <span>-50%</span>
                         </span>
-                        <span className="text-[#002B49] font-bold">0 (Centro)</span>
+                        <span className="text-[#302C9B] font-bold">0 (Centro)</span>
                         <span className="flex items-center gap-0.5">
                           <span>+50%</span>
                           <ZoomIn className="w-2.5 h-2.5 text-stone-400" />
@@ -1302,7 +1302,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold text-[#002B49] bg-[#22CBD0] hover:bg-[#1db9be] rounded-xl cursor-pointer"
+                  className="flex-1 py-2 text-xs font-bold text-white bg-[#302C9B] hover:bg-[#25227B] rounded-xl cursor-pointer"
                 >
                   Salvar
                 </button>

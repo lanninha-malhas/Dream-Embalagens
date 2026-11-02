@@ -23,7 +23,7 @@ export default defineConfig(() => {
           name: 'Catálogo Digital',
           short_name: 'Catálogo',
           description: 'Catálogo digital de produtos com pedidos direto via WhatsApp.',
-          theme_color: '#22CBD0',
+          theme_color: '#302C9B',
           background_color: '#ffffff',
           display: 'standalone',
           start_url: '/',
