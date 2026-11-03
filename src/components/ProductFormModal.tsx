@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Save, AlertCircle, Lock, TrendingUp } from 'lucide-react';
+import { X, Save, AlertCircle, Lock, TrendingUp, Loader2 } from 'lucide-react';
 import { Product, Category } from '../types.ts';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (product: Omit<Product, 'id'> & { id?: string }) => void;
+  onSave: (product: Omit<Product, 'id'> & { id?: string }) => Promise<void> | void;
   initialProduct: Product | null;
   categories?: Category[];
 }
@@ -29,6 +29,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [unit, setUnit] = useState('Unidade');
   const [available, setAvailable] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialProduct) {
@@ -92,8 +93,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     if (!name.trim()) {
       setError('O nome do produto é obrigatório.');
@@ -110,23 +112,28 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     const parsedIncrement = parseInt(incrementStr, 10) || 1;
     const parsedStock = stockStr.trim() !== '' ? parseInt(stockStr, 10) : undefined;
 
-    onSave({
-      id: initialProduct?.id,
-      name: name.trim(),
-      description: description.trim(),
-      category: category.trim() || undefined,
-      sku: sku.trim() || undefined,
-      code: code.trim() || undefined,
-      costPrice: parsedCost > 0 ? parsedCost : undefined,
-      price: parsedSale,
-      profit: calculatedProfit,
-      increment: parsedIncrement > 0 ? parsedIncrement : 1,
-      stock: parsedStock,
-      unit: unit.trim() || 'Unidade',
-      available,
-      hideDescription: initialProduct?.hideDescription,
-      hidePrice: initialProduct?.hidePrice,
-    });
+    setIsSubmitting(true);
+    try {
+      await onSave({
+        id: initialProduct?.id,
+        name: name.trim(),
+        description: description.trim(),
+        category: category.trim() || undefined,
+        sku: sku.trim() || undefined,
+        code: code.trim() || undefined,
+        costPrice: parsedCost > 0 ? parsedCost : undefined,
+        price: parsedSale,
+        profit: calculatedProfit,
+        increment: parsedIncrement > 0 ? parsedIncrement : 1,
+        stock: parsedStock,
+        unit: unit.trim() || 'Unidade',
+        available,
+        hideDescription: initialProduct?.hideDescription,
+        hidePrice: initialProduct?.hidePrice,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -406,10 +413,15 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 px-3 text-xs font-black text-white bg-[#302C9B] hover:bg-[#25227B] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 py-2.5 px-3 text-xs font-black text-white bg-[#302C9B] hover:bg-[#25227B] active:scale-95 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-60"
             >
-              <Save className="w-3.5 h-3.5 text-white" />
-              <span>Salvar Produto</span>
+              {isSubmitting ? (
+                <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5 text-white" />
+              )}
+              <span>{isSubmitting ? 'Salvando...' : 'Salvar Produto'}</span>
             </button>
           </div>
         </form>

@@ -69,11 +69,22 @@ export default function App() {
   // Inicialização resiliente a partir do cache local para resposta instantânea
   const [categories, setCategories] = useState<Category[]>(() => {
     const cached = getLocalCachedCategories();
-    return cached.length > 0 ? cached : INITIAL_CATEGORIES;
+    const seen = new Set<string>();
+    return cached.filter((c) => {
+      const key = (c.name || '').trim().toLowerCase();
+      if (!c.id || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   });
   const [products, setProducts] = useState<Product[]>(() => {
     const cached = getLocalCachedProducts();
-    return cached.length > 0 ? cached : INITIAL_PRODUCTS;
+    const seen = new Set<string>();
+    return cached.filter((p) => {
+      if (!p.id || seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
   });
   const [settings, setSettings] = useState<StoreSettings>(() => {
     const cached = getLocalCachedSettings();
@@ -204,11 +215,30 @@ export default function App() {
     setCart([]);
   };
 
-  // Category CRUD operations com persistência direta no Supabase
+  // Category CRUD operations com persistência direta no Firestore
   const handleAddCategory = async (newCat: Omit<Category, 'id'>) => {
+    const trimmedName = newCat.name.trim();
+    if (!trimmedName) return;
+
+    // Verificar se já existe uma categoria com este mesmo nome (evita duplicar)
+    const existing = categories.find(
+      (c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (existing) {
+      if (newCat.imageUrl !== undefined || newCat.imageZoom !== undefined) {
+        await handleEditCategory(existing.id, newCat);
+      }
+      return;
+    }
+
     const nextOrder = categories.length;
     const catId = await saveCategoryToCloud(newCat, nextOrder);
-    setCategories((prev) => [...prev, { ...newCat, id: catId, orderIndex: nextOrder }]);
+    setCategories((prev) => {
+      if (prev.some((c) => c.id === catId || c.name.trim().toLowerCase() === trimmedName.toLowerCase())) {
+        return prev;
+      }
+      return [...prev, { ...newCat, id: catId, orderIndex: nextOrder }];
+    });
   };
 
   const handleEditCategory = async (id: string, updatedFields: Partial<Category>) => {
@@ -245,19 +275,25 @@ export default function App() {
     }
   };
 
-  // Product CRUD operations com persistência direta no Supabase
+  // Product CRUD operations com persistência direta no Firestore
   const handleAddProduct = async (newProduct: Omit<Product, 'id'>) => {
     const nextOrder = products.length;
     const prodId = await saveProductToCloud(newProduct, nextOrder);
-    setProducts((prev) => [...prev, { ...newProduct, id: prodId, orderIndex: nextOrder }]);
+    setProducts((prev) => {
+      if (prev.some((p) => p.id === prodId)) {
+        return prev;
+      }
+      return [...prev, { ...newProduct, id: prodId, orderIndex: nextOrder }];
+    });
 
-    // Se o produto possui categoria ainda não listada, cadastra na nuvem
+    // Se o produto possui categoria ainda não listada, cadastra na nuvem se não existir
     if (newProduct.category) {
+      const catName = newProduct.category.trim();
       const exists = categories.some(
-        (c) => c.name.trim().toLowerCase() === newProduct.category!.trim().toLowerCase()
+        (c) => c.name.trim().toLowerCase() === catName.toLowerCase()
       );
       if (!exists) {
-        await handleAddCategory({ name: newProduct.category.trim() });
+        await handleAddCategory({ name: catName });
       }
     }
   };

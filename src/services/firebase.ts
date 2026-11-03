@@ -155,7 +155,14 @@ export function subscribeCategories(
   // Emit locally cached categories immediately to prevent empty layout
   const cached = getLocalCachedCategories();
   if (cached.length > 0) {
-    callback(cached);
+    const seen = new Set<string>();
+    const deduplicated = cached.filter((c) => {
+      const key = (c.name || '').trim().toLowerCase();
+      if (!c.id || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    callback(deduplicated);
   }
 
   const collPath = 'categories';
@@ -163,16 +170,28 @@ export function subscribeCategories(
     collection(db, collPath),
     (snapshot) => {
       const list: Category[] = [];
+      const seenIds = new Set<string>();
+      const seenNames = new Set<string>();
+
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        list.push({
-          id: docSnap.id,
-          name: data.name || '',
-          description: data.description || undefined,
-          imageUrl: data.imageUrl || undefined,
-          imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
-          orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
-        });
+        const id = docSnap.id;
+        const name = (data.name || '').trim();
+        const normName = name.toLowerCase();
+
+        // Evitar duplicatas por ID ou por nome idêntico
+        if (id && name && !seenIds.has(id) && !seenNames.has(normName)) {
+          seenIds.add(id);
+          seenNames.add(normName);
+          list.push({
+            id,
+            name,
+            description: data.description || undefined,
+            imageUrl: data.imageUrl || undefined,
+            imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
+            orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
+          });
+        }
       });
 
       // Sort by orderIndex or name
@@ -201,7 +220,13 @@ export function subscribeProducts(
   // Emit locally cached products immediately
   const cached = getLocalCachedProducts();
   if (cached.length > 0) {
-    callback(cached);
+    const seen = new Set<string>();
+    const deduplicated = cached.filter((p) => {
+      if (!p.id || seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+    callback(deduplicated);
   }
 
   const collPath = 'products';
@@ -209,28 +234,35 @@ export function subscribeProducts(
     collection(db, collPath),
     (snapshot) => {
       const list: Product[] = [];
+      const seenIds = new Set<string>();
+
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        list.push({
-          id: docSnap.id,
-          name: data.name || '',
-          description: data.description || '',
-          price: Number(data.price) || 0,
-          costPrice: typeof data.costPrice === 'number' ? data.costPrice : undefined,
-          profit: typeof data.profit === 'number' ? data.profit : undefined,
-          sku: data.sku || undefined,
-          code: data.code || undefined,
-          category: data.category || undefined,
-          increment: typeof data.increment === 'number' ? data.increment : 1,
-          stock: typeof data.stock === 'number' ? data.stock : undefined,
-          unit: data.unit || 'Fardo c/ 500 un',
-          available: data.available !== false,
-          hideDescription: Boolean(data.hideDescription),
-          hidePrice: Boolean(data.hidePrice),
-          imageUrl: data.imageUrl || undefined,
-          imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
-          orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
-        });
+        const id = docSnap.id;
+
+        if (id && !seenIds.has(id)) {
+          seenIds.add(id);
+          list.push({
+            id,
+            name: data.name || '',
+            description: data.description || '',
+            price: Number(data.price) || 0,
+            costPrice: typeof data.costPrice === 'number' ? data.costPrice : undefined,
+            profit: typeof data.profit === 'number' ? data.profit : undefined,
+            sku: data.sku || undefined,
+            code: data.code || undefined,
+            category: data.category || undefined,
+            increment: typeof data.increment === 'number' ? data.increment : 1,
+            stock: typeof data.stock === 'number' ? data.stock : undefined,
+            unit: data.unit || 'Fardo c/ 500 un',
+            available: data.available !== false,
+            hideDescription: Boolean(data.hideDescription),
+            hidePrice: Boolean(data.hidePrice),
+            imageUrl: data.imageUrl || undefined,
+            imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
+            orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
+          });
+        }
       });
 
       // Sort by orderIndex
@@ -385,11 +417,31 @@ export async function initializeCloudDatabase(): Promise<void> {
 
 // Product Mutations
 export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: string }, orderIndex?: number): Promise<string> {
-  const id = product.id || `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const localList = getLocalCachedProducts();
+  const prodName = product.name.trim();
+  const prodCat = (product.category || '').trim();
+
+  let id = product.id;
+  // Se for um novo produto, verificar se já existe no cache um produto idêntico criado recentemente para evitar duplicação por clique duplo
+  if (!id && prodName) {
+    const existing = localList.find(
+      (p) =>
+        p.name.trim().toLowerCase() === prodName.toLowerCase() &&
+        (p.category || '').trim().toLowerCase() === prodCat.toLowerCase()
+    );
+    if (existing) {
+      id = existing.id;
+    }
+  }
+
+  if (!id) {
+    id = `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  }
+
   const path = `products/${id}`;
 
   const payload: Record<string, any> = {
-    name: product.name.trim(),
+    name: prodName,
     price: Number(product.price) || 0,
     available: product.available ?? true,
     description: (product.description || '').trim(),
@@ -400,7 +452,7 @@ export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: s
   if (product.profit !== undefined) payload.profit = Number(product.profit) || 0;
   if (product.sku) payload.sku = product.sku.trim();
   if (product.code) payload.code = product.code.trim();
-  if (product.category) payload.category = product.category.trim();
+  if (product.category) payload.category = prodCat;
   if (product.unit) payload.unit = product.unit.trim();
   if (product.increment) payload.increment = Number(product.increment) || 1;
   if (product.stock !== undefined) payload.stock = Number(product.stock) || 0;
@@ -410,7 +462,6 @@ export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: s
   if (product.imageZoom !== undefined) payload.imageZoom = Number(product.imageZoom) || 0;
 
   // Update local cache immediately
-  const localList = getLocalCachedProducts();
   const existingIdx = localList.findIndex((p) => p.id === id);
   const updatedItem: Product = {
     ...(localList[existingIdx] || {}),
@@ -465,24 +516,38 @@ export async function reorderProductsInCloud(products: Product[]): Promise<void>
 
 // Category Mutations
 export async function saveCategoryToCloud(cat: Partial<Category> & { id?: string }, orderIndex?: number): Promise<string> {
-  const id = cat.id || `cat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const localList = getLocalCachedCategories();
+  const catName = (cat.name || '').trim();
+
+  let id = cat.id;
+  // Se for nova categoria, verificar se já existe uma com o mesmo nome para reutilizar o ID
+  if (!id && catName) {
+    const existing = localList.find((c) => c.name.trim().toLowerCase() === catName.toLowerCase());
+    if (existing) {
+      id = existing.id;
+    }
+  }
+
+  if (!id) {
+    id = `cat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  }
+
   const path = `categories/${id}`;
 
   const payload: Record<string, any> = {};
-  if (cat.name !== undefined) payload.name = cat.name.trim();
+  if (cat.name !== undefined) payload.name = catName;
   if (cat.description !== undefined) payload.description = cat.description.trim();
   if (cat.imageUrl !== undefined) payload.imageUrl = cat.imageUrl;
   if (cat.imageZoom !== undefined) payload.imageZoom = Math.max(-50, Math.min(50, Number(cat.imageZoom) || 0));
   if (typeof orderIndex === 'number') payload.orderIndex = orderIndex;
 
   // Update local cache immediately
-  const localList = getLocalCachedCategories();
   const existingIdx = localList.findIndex((c) => c.id === id);
   const updatedItem: Category = {
     ...(localList[existingIdx] || {}),
     ...cat,
     id,
-    name: cat.name || localList[existingIdx]?.name || 'Categoria',
+    name: catName || localList[existingIdx]?.name || 'Categoria',
     orderIndex: typeof orderIndex === 'number' ? orderIndex : localList[existingIdx]?.orderIndex ?? localList.length,
   };
   if (existingIdx >= 0) {

@@ -90,6 +90,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newCatName, setNewCatName] = useState('');
   const [newCatImage, setNewCatImage] = useState<string>('');
   const [newCatZoom, setNewCatZoom] = useState<number>(0);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editCatName, setEditCatName] = useState('');
   const [editCatImage, setEditCatImage] = useState<string>('');
@@ -317,18 +318,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName.trim()) return;
+    const trimmed = newCatName.trim();
+    if (!trimmed || isCreatingCategory) return;
 
-    await onAddCategory({
-      name: newCatName.trim(),
-      imageUrl: newCatImage.trim() || undefined,
-      imageZoom: newCatZoom,
-    });
-    setNewCatName('');
-    setNewCatImage('');
-    setNewCatZoom(0);
-    setCategoryNotice('Categoria salva com sucesso!');
-    setTimeout(() => setCategoryNotice(null), 3000);
+    // Verificar se já existe categoria com o mesmo nome para evitar duplicata
+    if (categories.some((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase())) {
+      setCategoryNotice('Essa categoria já está cadastrada no catálogo.');
+      setTimeout(() => setCategoryNotice(null), 3000);
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    try {
+      await onAddCategory({
+        name: trimmed,
+        imageUrl: newCatImage.trim() || undefined,
+        imageZoom: newCatZoom,
+      });
+      setNewCatName('');
+      setNewCatImage('');
+      setNewCatZoom(0);
+      setCategoryNotice('Categoria salva com sucesso!');
+      setTimeout(() => setCategoryNotice(null), 3000);
+    } catch (err: any) {
+      console.error('Erro ao adicionar categoria:', err);
+      setCategoryNotice('Erro ao salvar categoria.');
+      setTimeout(() => setCategoryNotice(null), 3000);
+    } finally {
+      setIsCreatingCategory(false);
+    }
   };
 
   const handleStartEditCategory = (cat: Category) => {
@@ -464,9 +482,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
             <button
               type="submit"
-              className="py-2 px-3.5 bg-[#302C9B] hover:bg-[#25227B] active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
+              disabled={isCreatingCategory}
+              className="py-2 px-3.5 bg-[#302C9B] hover:bg-[#25227B] active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 disabled:opacity-60"
             >
-              <FolderPlus className="w-3.5 h-3.5 text-white" />
+              {isCreatingCategory ? (
+                <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+              ) : (
+                <FolderPlus className="w-3.5 h-3.5 text-white" />
+              )}
               <span>Salvar</span>
             </button>
           </div>
