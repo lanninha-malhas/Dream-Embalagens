@@ -21,6 +21,8 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
+export const isFirebaseConfigured = Boolean(firebaseConfig.projectId && firebaseConfig.apiKey);
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -68,6 +70,66 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
+// Local cache keys for instantaneous startup and offline support
+export const CATEGORIES_CACHE_KEY = 'office_catalog_categories_cache';
+export const PRODUCTS_CACHE_KEY = 'office_catalog_products_cache';
+export const SETTINGS_CACHE_KEY = 'office_store_settings_cache';
+
+export function getLocalCachedCategories(): Category[] {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalCachedCategories(categories: Category[]): void {
+  try {
+    localStorage.setItem(CATEGORIES_CACHE_KEY, JSON.stringify(categories));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function getLocalCachedProducts(): Product[] {
+  try {
+    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalCachedProducts(products: Product[]): void {
+  try {
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(products));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function getLocalCachedSettings(): Partial<StoreSettings> | null {
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLocalCachedSettings(settings: StoreSettings): void {
+  try {
+    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(settings));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 // Test initial connection on boot as mandated by the skill
 export async function testConnection(): Promise<boolean> {
   try {
@@ -81,31 +143,8 @@ export async function testConnection(): Promise<boolean> {
   }
 }
 
-// Purge all legacy localStorage keys to ensure clean state with no residue
 export function purgeInternalStorage(): void {
-  try {
-    const keysToRemove = [
-      'kraft_catalog_products_v1',
-      'kraft_catalog_categories_v1',
-      'kraft_catalog_settings_v2',
-      'kraft_catalog_settings_v1',
-      'kraft_catalog_cart_v1',
-      'molekada_logo',
-      'office_embalagens_logo',
-    ];
-    keysToRemove.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-    // Also remove any remaining items containing "kraft_" or "molekada"
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && (k.includes('kraft') || k.includes('molekada') || k.includes('embalagens'))) {
-        localStorage.removeItem(k);
-      }
-    }
-  } catch (err) {
-    console.error('Error clearing local residual storage:', err);
-  }
+  // Safe helper if needed
 }
 
 // Real-time listener for Categories
@@ -113,6 +152,12 @@ export function subscribeCategories(
   callback: (categories: Category[]) => void,
   onError?: (error: Error) => void
 ): () => void {
+  // Emit locally cached categories immediately to prevent empty layout
+  const cached = getLocalCachedCategories();
+  if (cached.length > 0) {
+    callback(cached);
+  }
+
   const collPath = 'categories';
   return onSnapshot(
     collection(db, collPath),
@@ -127,17 +172,18 @@ export function subscribeCategories(
           imageUrl: data.imageUrl || undefined,
           imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
           orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
-        } as Category & { orderIndex?: number });
+        });
       });
 
       // Sort by orderIndex or name
-      list.sort((a: any, b: any) => {
+      list.sort((a, b) => {
         if (typeof a.orderIndex === 'number' && typeof b.orderIndex === 'number') {
           return a.orderIndex - b.orderIndex;
         }
         return a.name.localeCompare(b.name);
       });
 
+      saveLocalCachedCategories(list);
       callback(list);
     },
     (error) => {
@@ -152,11 +198,17 @@ export function subscribeProducts(
   callback: (products: Product[]) => void,
   onError?: (error: Error) => void
 ): () => void {
+  // Emit locally cached products immediately
+  const cached = getLocalCachedProducts();
+  if (cached.length > 0) {
+    callback(cached);
+  }
+
   const collPath = 'products';
   return onSnapshot(
     collection(db, collPath),
     (snapshot) => {
-      const list: (Product & { orderIndex?: number })[] = [];
+      const list: Product[] = [];
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         list.push({
@@ -175,6 +227,8 @@ export function subscribeProducts(
           available: data.available !== false,
           hideDescription: Boolean(data.hideDescription),
           hidePrice: Boolean(data.hidePrice),
+          imageUrl: data.imageUrl || undefined,
+          imageZoom: typeof data.imageZoom === 'number' ? data.imageZoom : 0,
           orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
         });
       });
@@ -182,6 +236,7 @@ export function subscribeProducts(
       // Sort by orderIndex
       list.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
 
+      saveLocalCachedProducts(list);
       callback(list);
     },
     (error) => {
@@ -196,15 +251,23 @@ export function subscribeSettings(
   callback: (settings: StoreSettings) => void,
   onError?: (error: Error) => void
 ): () => void {
+  const cached = getLocalCachedSettings();
+  if (cached) {
+    callback({
+      ...INITIAL_SETTINGS,
+      ...cached,
+    });
+  }
+
   const docPath = 'settings/store';
   return onSnapshot(
     doc(db, 'settings', 'store'),
     (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        callback({
+        const fullSettings: StoreSettings = {
           storeName: data.storeName || INITIAL_SETTINGS.storeName,
-          subtitle: data.subtitle || INITIAL_SETTINGS.subtitle,
+          subtitle: data.subtitle ?? INITIAL_SETTINGS.subtitle,
           logoUrl: data.logoUrl || INITIAL_SETTINGS.logoUrl,
           logoZoom: typeof data.logoZoom === 'number' ? data.logoZoom : 0,
           whatsappNumber: data.whatsappNumber || INITIAL_SETTINGS.whatsappNumber,
@@ -215,12 +278,15 @@ export function subscribeSettings(
           hideCatalogPrice: data.hideCatalogPrice !== undefined ? data.hideCatalogPrice : true,
           showCategoryImages: Boolean(data.showCategoryImages),
           adminPassword: data.adminPassword || INITIAL_SETTINGS.adminPassword || 'abc1234',
-        });
+        };
+        saveLocalCachedSettings(fullSettings);
+        callback(fullSettings);
       } else {
-        // If settings doc doesn't exist yet, save clean default settings
+        // Create initial settings doc
         setDoc(doc(db, 'settings', 'store'), {
           ...INITIAL_SETTINGS,
         }).catch((err) => handleFirestoreError(err, OperationType.WRITE, docPath));
+        saveLocalCachedSettings(INITIAL_SETTINGS);
         callback(INITIAL_SETTINGS);
       }
     },
@@ -231,11 +297,10 @@ export function subscribeSettings(
   );
 }
 
-// Check and seed clean initial cloud database if empty
+// Check and seed initial cloud database only if database is completely fresh
 export async function initializeCloudDatabase(): Promise<void> {
   const catCollPath = 'categories';
   const prodCollPath = 'products';
-  const setDocPath = 'settings/store';
 
   try {
     const [catSnap, prodSnap, setSnap] = await Promise.all([
@@ -247,20 +312,22 @@ export async function initializeCloudDatabase(): Promise<void> {
     const batch = writeBatch(db);
     let hasWrites = false;
 
-    // Seed categories if empty
+    // Seed default categories if database is completely empty
     if (catSnap.empty) {
       INITIAL_CATEGORIES.forEach((cat, index) => {
         const catRef = doc(db, 'categories', cat.id);
         batch.set(catRef, {
           name: cat.name,
           orderIndex: index,
+          imageZoom: 0,
+          ...(cat.imageUrl ? { imageUrl: cat.imageUrl } : {}),
           ...(cat.description ? { description: cat.description } : {}),
         });
       });
       hasWrites = true;
     }
 
-    // Seed products if empty
+    // Seed default products if empty
     if (prodSnap.empty) {
       INITIAL_PRODUCTS.forEach((prod, index) => {
         const prodRef = doc(db, 'products', prod.id);
@@ -279,6 +346,8 @@ export async function initializeCloudDatabase(): Promise<void> {
         if (prod.unit) payload.unit = prod.unit;
         if (prod.increment !== undefined) payload.increment = prod.increment;
         if (prod.stock !== undefined) payload.stock = prod.stock;
+        if (prod.imageUrl) payload.imageUrl = prod.imageUrl;
+        if (prod.imageZoom !== undefined) payload.imageZoom = prod.imageZoom;
 
         batch.set(prodRef, payload);
       });
@@ -299,6 +368,7 @@ export async function initializeCloudDatabase(): Promise<void> {
         deliveryNotice: INITIAL_SETTINGS.deliveryNotice,
         hideCatalogDescription: INITIAL_SETTINGS.hideCatalogDescription,
         hideCatalogPrice: INITIAL_SETTINGS.hideCatalogPrice,
+        showCategoryImages: INITIAL_SETTINGS.showCategoryImages ?? false,
         adminPassword: INITIAL_SETTINGS.adminPassword || 'abc1234',
       });
       hasWrites = true;
@@ -306,7 +376,7 @@ export async function initializeCloudDatabase(): Promise<void> {
 
     if (hasWrites) {
       await batch.commit();
-      console.log('Firebase Cloud database seeded cleanly with initial catalog.');
+      console.log('Firebase Cloud database seeded successfully.');
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, 'bootstrap');
@@ -315,7 +385,7 @@ export async function initializeCloudDatabase(): Promise<void> {
 
 // Product Mutations
 export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: string }, orderIndex?: number): Promise<string> {
-  const id = product.id || `kft-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const id = product.id || `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const path = `products/${id}`;
 
   const payload: Record<string, any> = {
@@ -336,6 +406,24 @@ export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: s
   if (product.stock !== undefined) payload.stock = Number(product.stock) || 0;
   if (product.hideDescription !== undefined) payload.hideDescription = Boolean(product.hideDescription);
   if (product.hidePrice !== undefined) payload.hidePrice = Boolean(product.hidePrice);
+  if (product.imageUrl) payload.imageUrl = product.imageUrl;
+  if (product.imageZoom !== undefined) payload.imageZoom = Number(product.imageZoom) || 0;
+
+  // Update local cache immediately
+  const localList = getLocalCachedProducts();
+  const existingIdx = localList.findIndex((p) => p.id === id);
+  const updatedItem: Product = {
+    ...(localList[existingIdx] || {}),
+    ...product,
+    id,
+    orderIndex: typeof orderIndex === 'number' ? orderIndex : localList[existingIdx]?.orderIndex ?? localList.length,
+  };
+  if (existingIdx >= 0) {
+    localList[existingIdx] = updatedItem;
+  } else {
+    localList.push(updatedItem);
+  }
+  saveLocalCachedProducts(localList);
 
   try {
     await setDoc(doc(db, 'products', id), payload, { merge: true });
@@ -347,6 +435,11 @@ export async function saveProductToCloud(product: Omit<Product, 'id'> & { id?: s
 
 export async function deleteProductFromCloud(productId: string): Promise<void> {
   const path = `products/${productId}`;
+
+  // Update local cache immediately
+  const localList = getLocalCachedProducts().filter((p) => p.id !== productId);
+  saveLocalCachedProducts(localList);
+
   try {
     await deleteDoc(doc(db, 'products', productId));
   } catch (error) {
@@ -355,6 +448,8 @@ export async function deleteProductFromCloud(productId: string): Promise<void> {
 }
 
 export async function reorderProductsInCloud(products: Product[]): Promise<void> {
+  saveLocalCachedProducts(products);
+
   const batch = writeBatch(db);
   products.forEach((prod, index) => {
     const ref = doc(db, 'products', prod.id);
@@ -370,7 +465,7 @@ export async function reorderProductsInCloud(products: Product[]): Promise<void>
 
 // Category Mutations
 export async function saveCategoryToCloud(cat: Partial<Category> & { id?: string }, orderIndex?: number): Promise<string> {
-  const id = cat.id || `cat-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const id = cat.id || `cat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const path = `categories/${id}`;
 
   const payload: Record<string, any> = {};
@@ -379,6 +474,23 @@ export async function saveCategoryToCloud(cat: Partial<Category> & { id?: string
   if (cat.imageUrl !== undefined) payload.imageUrl = cat.imageUrl;
   if (cat.imageZoom !== undefined) payload.imageZoom = Math.max(-50, Math.min(50, Number(cat.imageZoom) || 0));
   if (typeof orderIndex === 'number') payload.orderIndex = orderIndex;
+
+  // Update local cache immediately
+  const localList = getLocalCachedCategories();
+  const existingIdx = localList.findIndex((c) => c.id === id);
+  const updatedItem: Category = {
+    ...(localList[existingIdx] || {}),
+    ...cat,
+    id,
+    name: cat.name || localList[existingIdx]?.name || 'Categoria',
+    orderIndex: typeof orderIndex === 'number' ? orderIndex : localList[existingIdx]?.orderIndex ?? localList.length,
+  };
+  if (existingIdx >= 0) {
+    localList[existingIdx] = updatedItem;
+  } else {
+    localList.push(updatedItem);
+  }
+  saveLocalCachedCategories(localList);
 
   try {
     await setDoc(doc(db, 'categories', id), payload, { merge: true });
@@ -390,6 +502,10 @@ export async function saveCategoryToCloud(cat: Partial<Category> & { id?: string
 
 export async function deleteCategoryFromCloud(categoryId: string): Promise<void> {
   const path = `categories/${categoryId}`;
+
+  const localList = getLocalCachedCategories().filter((c) => c.id !== categoryId);
+  saveLocalCachedCategories(localList);
+
   try {
     await deleteDoc(doc(db, 'categories', categoryId));
   } catch (error) {
@@ -398,7 +514,9 @@ export async function deleteCategoryFromCloud(categoryId: string): Promise<void>
 }
 
 // Settings Mutation
-export async function saveSettingsToCloud(settings: StoreSettings): Promise<void> {
+export async function saveSettingsToCloud(settings: StoreSettings): Promise<{ missingColumns?: string[] } | void> {
+  saveLocalCachedSettings(settings);
+
   const path = 'settings/store';
   const payload: Record<string, any> = {
     storeName: (settings.storeName || '').trim(),
@@ -412,12 +530,52 @@ export async function saveSettingsToCloud(settings: StoreSettings): Promise<void
     hideCatalogDescription: Boolean(settings.hideCatalogDescription),
     hideCatalogPrice: Boolean(settings.hideCatalogPrice),
     showCategoryImages: Boolean(settings.showCategoryImages),
-    adminPassword: (settings.adminPassword || 'admin').trim(),
+    adminPassword: (settings.adminPassword || 'abc1234').trim(),
   };
 
   try {
     await setDoc(doc(db, 'settings', 'store'), payload, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+// Wipe all data from Cloud (reset catalog)
+export async function wipeAllDataFromCloud(): Promise<void> {
+  try {
+    const [catsSnap, prodsSnap] = await Promise.all([
+      getDocs(collection(db, 'categories')),
+      getDocs(collection(db, 'products')),
+    ]);
+
+    const batch = writeBatch(db);
+    catsSnap.forEach((d) => batch.delete(d.ref));
+    prodsSnap.forEach((d) => batch.delete(d.ref));
+
+    // Reset settings document to clean state
+    const cleanSettings: StoreSettings = {
+      storeName: 'Office Embalagens',
+      subtitle: '',
+      logoUrl: '',
+      logoZoom: 0,
+      whatsappNumber: '5511999998888',
+      pixKey: '',
+      minOrderValue: 0,
+      deliveryNotice: '',
+      hideCatalogDescription: true,
+      hideCatalogPrice: true,
+      showCategoryImages: false,
+      adminPassword: 'admin',
+    };
+    batch.set(doc(db, 'settings', 'store'), cleanSettings);
+
+    await batch.commit();
+
+    // Clear local cached storage
+    localStorage.removeItem(CATEGORIES_CACHE_KEY);
+    localStorage.removeItem(PRODUCTS_CACHE_KEY);
+    localStorage.removeItem(SETTINGS_CACHE_KEY);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, 'wipe');
   }
 }

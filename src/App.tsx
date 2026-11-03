@@ -23,7 +23,7 @@ import {
 import { PWAInstallBanner } from './components/PWAInstallBanner.tsx';
 import { OfflineIndicator } from './components/OfflineIndicator.tsx';
 import {
-  isSupabaseConfigured,
+  isFirebaseConfigured,
   purgeInternalStorage,
   testConnection,
   initializeCloudDatabase,
@@ -40,7 +40,7 @@ import {
   getLocalCachedCategories,
   getLocalCachedProducts,
   getLocalCachedSettings,
-} from './services/supabase.ts';
+} from './services/firebase.ts';
 
 // Helper function to normalize text (removes accents and converts to lowercase)
 export function normalizeSearchText(text?: string | null): string {
@@ -168,7 +168,7 @@ export default function App() {
           setIsCloudConnected(false);
         }
       } catch (err) {
-        console.warn('Supabase sync initialized in local/offline mode:', err);
+        console.warn('Firebase sync initialized in local/offline mode:', err);
         setIsCloudConnected(false);
       } finally {
         setIsLoadingCloud(false);
@@ -292,13 +292,13 @@ export default function App() {
 
   const handleSaveSettings = async (newSettings: StoreSettings) => {
     setSettings(newSettings);
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       return await saveSettingsToCloud(newSettings);
     }
   };
 
   const handleWipeAllData = async () => {
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       await wipeAllDataFromCloud();
     } else {
       purgeInternalStorage();
