@@ -20,8 +20,8 @@ service cloud.firestore {
       return data.name is string &&
         data.name.size() > 0 &&
         data.name.size() <= 100 &&
-        (!('description' in data) || (data.description is string && data.description.size() <= 300)) &&
-        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 300000)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1500000)) &&
         (!('imageZoom' in data) || data.imageZoom is number) &&
         (!('orderIndex' in data) || data.orderIndex is number);
     }
@@ -33,7 +33,7 @@ service cloud.firestore {
         data.price is number &&
         data.price >= 0 &&
         data.available is bool &&
-        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
         (!('costPrice' in data) || data.costPrice is number) &&
         (!('profit' in data) || data.profit is number) &&
         (!('sku' in data) || (data.sku is string && data.sku.size() <= 50)) &&
@@ -44,17 +44,16 @@ service cloud.firestore {
         (!('stock' in data) || data.stock is number) &&
         (!('hideDescription' in data) || data.hideDescription is bool) &&
         (!('hidePrice' in data) || data.hidePrice is bool) &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1500000)) &&
+        (!('imageZoom' in data) || data.imageZoom is number) &&
         (!('orderIndex' in data) || data.orderIndex is number);
     }
 
     function isValidSettings(data) {
-      return data.storeName is string &&
-        data.storeName.size() > 0 &&
-        data.storeName.size() <= 100 &&
-        data.whatsappNumber is string &&
-        data.whatsappNumber.size() <= 30 &&
-        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 150)) &&
-        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 300000)) &&
+      return (!('storeName' in data) || (data.storeName is string && data.storeName.size() <= 100)) &&
+        (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 50)) &&
+        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 300)) &&
+        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1500000)) &&
         (!('logoZoom' in data) || data.logoZoom is number) &&
         (!('pixKey' in data) || (data.pixKey is string && data.pixKey.size() <= 100)) &&
         (!('minOrderValue' in data) || data.minOrderValue is number) &&

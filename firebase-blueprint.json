@@ -71,6 +71,15 @@
         "orderIndex": {
           "type": "number",
           "description": "Display order sort index"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Product image URL or data URL",
+          "maxLength": 1500000
+        },
+        "imageZoom": {
+          "type": "number",
+          "description": "Product image zoom percentage (-50 to +50)"
         }
       },
       "required": ["name", "price", "available"]
@@ -94,7 +103,7 @@
         "imageUrl": {
           "type": "string",
           "description": "URL or compressed data URL of category image",
-          "maxLength": 300000
+          "maxLength": 1500000
         },
         "imageZoom": {
           "type": "number",
@@ -115,18 +124,17 @@
         "storeName": {
           "type": "string",
           "description": "Display name of the store",
-          "minLength": 1,
           "maxLength": 100
         },
         "subtitle": {
           "type": "string",
           "description": "Catalog subtitle",
-          "maxLength": 150
+          "maxLength": 300
         },
         "logoUrl": {
           "type": "string",
           "description": "URL to store logo or compressed data URL",
-          "maxLength": 300000
+          "maxLength": 1500000
         },
         "logoZoom": {
           "type": "number",
@@ -135,7 +143,7 @@
         "whatsappNumber": {
           "type": "string",
           "description": "Target WhatsApp number for receiving orders",
-          "maxLength": 30
+          "maxLength": 50
         },
         "pixKey": {
           "type": "string",
@@ -169,7 +177,7 @@
           "maxLength": 100
         }
       },
-      "required": ["storeName", "whatsappNumber"]
+      "required": []
     }
   },
   "firestore": {

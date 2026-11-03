@@ -585,7 +585,7 @@ export async function saveSettingsToCloud(settings: StoreSettings): Promise<{ mi
   const path = 'settings/store';
   const payload: Record<string, any> = {
     storeName: (settings.storeName || '').trim(),
-    whatsappNumber: settings.whatsappNumber.trim(),
+    whatsappNumber: (settings.whatsappNumber || '').trim(),
     subtitle: (settings.subtitle || '').trim(),
     logoUrl: (settings.logoUrl || '').trim(),
     logoZoom: typeof settings.logoZoom === 'number' ? Math.max(-50, Math.min(50, settings.logoZoom)) : 0,
