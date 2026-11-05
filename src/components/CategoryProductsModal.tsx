@@ -1,5 +1,4 @@
-import React from 'react';
-import { X, Minus, Plus, ShoppingCart, FolderOpen, Package } from 'lucide-react';
+import { X, Minus, Plus, ShoppingCart, Package } from 'lucide-react';
 import { Category, Product, CartItem, StoreSettings } from '../types.ts';
 import { formatBRL } from '../utils/formatters.ts';
 
@@ -49,25 +48,10 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
       >
         {/* Modal Header */}
         <div className="bg-white px-4 py-3.5 border-b border-stone-200/90 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-            {settings.showCategoryImages && category.imageUrl ? (
-              <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0">
-                <img
-                  src={category.imageUrl}
-                  alt={category.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-9 h-9 rounded-xl bg-[#302C9B]/10 text-[#302C9B] flex items-center justify-center shrink-0">
-                <FolderOpen className="w-5 h-5 text-[#302C9B]" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <h2 className="font-bold text-stone-900 text-base leading-tight truncate">
-                {category.name}
-              </h2>
-            </div>
+          <div className="min-w-0 pr-2">
+            <h2 className="font-bold text-stone-900 text-base leading-tight truncate">
+              {category.name}
+            </h2>
           </div>
 
           <button
