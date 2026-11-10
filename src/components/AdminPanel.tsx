@@ -100,8 +100,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editCatZoom, setEditCatZoom] = useState<number>(0);
   const [categoryNotice, setCategoryNotice] = useState<string | null>(null);
 
-  // Admin filter by category
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  // Admin filter by category (starts empty so all categories begin closed and products hidden)
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('');
+
+  useEffect(() => {
+    if (
+      selectedCategoryFilter &&
+      !categories.some(
+        (c) => c.name.trim().toLowerCase() === selectedCategoryFilter.trim().toLowerCase()
+      )
+    ) {
+      setSelectedCategoryFilter('');
+    }
+  }, [categories, selectedCategoryFilter]);
 
   // Drag and drop ordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -132,13 +143,31 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
+  const moveDisplayedProduct = async (fromDisplayedIdx: number, toDisplayedIdx: number) => {
+    if (
+      fromDisplayedIdx === toDisplayedIdx ||
+      fromDisplayedIdx < 0 ||
+      toDisplayedIdx < 0 ||
+      fromDisplayedIdx >= displayedProducts.length ||
+      toDisplayedIdx >= displayedProducts.length
+    ) {
+      return;
+    }
+    const sourceId = displayedProducts[fromDisplayedIdx].id;
+    const targetId = displayedProducts[toDisplayedIdx].id;
+    const updated = [...products];
+    const sourceGlobalIdx = updated.findIndex((p) => p.id === sourceId);
+    const targetGlobalIdx = updated.findIndex((p) => p.id === targetId);
+    if (sourceGlobalIdx === -1 || targetGlobalIdx === -1) return;
+    const [movedItem] = updated.splice(sourceGlobalIdx, 1);
+    updated.splice(targetGlobalIdx, 0, movedItem);
+    await onReorderProducts(updated);
+  };
+
   const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
     if (draggedIndex !== null && draggedIndex !== targetIndex) {
-      const updated = [...products];
-      const [movedItem] = updated.splice(draggedIndex, 1);
-      updated.splice(targetIndex, 0, movedItem);
-      await onReorderProducts(updated);
+      await moveDisplayedProduct(draggedIndex, targetIndex);
     }
     setDraggedIndex(null);
     setDragOverIndex(null);
@@ -151,11 +180,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleMoveProduct = async (currentIndex: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (targetIndex < 0 || targetIndex >= products.length) return;
-    const updated = [...products];
-    const [movedItem] = updated.splice(currentIndex, 1);
-    updated.splice(targetIndex, 0, movedItem);
-    await onReorderProducts(updated);
+    await moveDisplayedProduct(currentIndex, targetIndex);
   };
 
   // Settings form state
@@ -404,15 +429,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  // Filter products according to selected category filter
-  const displayedProducts =
-    selectedCategoryFilter === 'all'
+  // Filter products according to selected category filter (hidden until a category is clicked)
+  const displayedProducts = !selectedCategoryFilter
+    ? categories.length === 0
       ? products
-      : products.filter(
-          (p) =>
-            (p.category || 'Geral').trim().toLowerCase() ===
-            selectedCategoryFilter.trim().toLowerCase()
-        );
+      : []
+    : products.filter(
+        (p) =>
+          (p.category || 'Geral').trim().toLowerCase() ===
+          selectedCategoryFilter.trim().toLowerCase()
+      );
 
   return (
     <div className="space-y-4 pb-16">
@@ -668,52 +694,52 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
         </div>
 
-        {/* Filtros rápidos por categoria */}
+        {/* Filtros de categorias empilhados em ordem (sem botão Todos e sem barra deslizante) */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setSelectedCategoryFilter('all')}
-              className={`py-1 px-2.5 rounded-lg border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                selectedCategoryFilter === 'all'
-                  ? 'bg-[#302C9B] text-white border-[#302C9B]'
-                  : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-              }`}
-            >
-              Todos ({products.length})
-            </button>
+          <div className="flex flex-col gap-1.5 text-xs">
             {categories.map((cat) => {
               const count = products.filter(
                 (p) =>
                   (p.category || 'Geral').trim().toLowerCase() ===
                   cat.name.trim().toLowerCase()
               ).length;
+              const isActive =
+                selectedCategoryFilter.trim().toLowerCase() === cat.name.trim().toLowerCase();
+
               return (
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setSelectedCategoryFilter(cat.name)}
-                  className={`py-1 px-2.5 rounded-lg border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                    selectedCategoryFilter === cat.name
-                      ? 'bg-[#302C9B] text-white border-[#302C9B]'
-                      : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                  onClick={() => setSelectedCategoryFilter(isActive ? '' : cat.name)}
+                  className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-[#302C9B] text-white border-[#302C9B] shadow-2xs'
+                      : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50 hover:border-stone-300'
                   }`}
                 >
-                  {cat.name} ({count})
+                  <span className="truncate">{cat.name}</span>
+                  <span
+                    className={`text-[11px] font-semibold shrink-0 tabular-nums ${
+                      isActive ? 'text-white/90' : 'text-stone-400'
+                    }`}
+                  >
+                    ({count})
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Lista de Produtos com Drag and Drop */}
-        <div className="space-y-2.5">
-          {displayedProducts.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-stone-300 p-4">
-              <p className="text-xs text-stone-500">
-                Nenhum produto cadastrado nesta categoria.
-              </p>
-            </div>
+        {/* Lista de Produtos com Drag and Drop (exibida somente ao clicar em uma categoria) */}
+        {(selectedCategoryFilter || categories.length === 0) && (
+          <div className="space-y-2.5">
+            {displayedProducts.length === 0 ? (
+              <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-stone-300 p-4">
+                <p className="text-xs text-stone-500">
+                  Nenhum produto cadastrado nesta categoria.
+                </p>
+              </div>
           ) : (
             displayedProducts.map((product, index) => {
               const isDragging = draggedIndex === index;
@@ -769,7 +795,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </button>
                         <button
                           type="button"
-                          disabled={index === products.length - 1}
+                          disabled={index === displayedProducts.length - 1}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleMoveProduct(index, 'down');
@@ -854,6 +880,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             })
           )}
         </div>
+        )}
       </div>
 
       {/* SEÇÃO 3: CONFIGURAÇÕES */}

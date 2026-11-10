@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Save, AlertCircle, Lock, TrendingUp, Loader2 } from 'lucide-react';
+import { X, Save, AlertCircle, TrendingUp, Loader2, Search, Check } from 'lucide-react';
 import { Product, Category } from '../types.ts';
 
 interface ProductFormModalProps {
@@ -30,6 +30,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [available, setAvailable] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (initialProduct) {
@@ -39,10 +40,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setSku(initialProduct.sku || '');
       setCode(initialProduct.code || '');
       setCostPriceStr(
-        initialProduct.costPrice !== undefined ? initialProduct.costPrice.toString().replace('.', ',') : ''
+        initialProduct.costPrice !== undefined ? initialProduct.costPrice.toFixed(2).replace('.', ',') : ''
       );
       setSalePriceStr(
-        initialProduct.price !== undefined ? initialProduct.price.toString().replace('.', ',') : ''
+        initialProduct.price !== undefined ? initialProduct.price.toFixed(2).replace('.', ',') : ''
       );
       setIncrementStr(
         initialProduct.increment !== undefined ? initialProduct.increment.toString() : '1'
@@ -66,30 +67,57 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setAvailable(true);
     }
     setError(null);
+    setIsCategoryDropdownOpen(false);
   }, [initialProduct, isOpen]);
 
-  // Parse helper supporting both comma and dot
+  const normalizeText = (text: string) =>
+    text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+
+  const matchingCategories = useMemo(() => {
+    const query = normalizeText(category);
+    if (query.length < 2) return [];
+    return categories.filter((c) => normalizeText(c.name).includes(query));
+  }, [categories, category]);
+
+  // Parse helper supporting both comma and dot (and optional thousands dot)
   const parseVal = (str: string) => {
     if (!str.trim()) return 0;
-    const clean = str.replace(',', '.').trim();
+    const trimmed = str.trim();
+    const clean =
+      trimmed.includes(',') && trimmed.includes('.')
+        ? trimmed.replace(/\./g, '').replace(',', '.')
+        : trimmed.replace(',', '.');
     const val = parseFloat(clean);
     return isNaN(val) ? 0 : val;
   };
 
-  // Cálculo automático do Lucro: Preço de Venda - Preço de Custo
+  const formatTwoDecimals = (str: string) => {
+    if (!str.trim()) return '';
+    const val = parseVal(str);
+    return val.toFixed(2).replace('.', ',');
+  };
+
+  const hasSalePrice = salePriceStr.trim() !== '' && parseVal(salePriceStr) > 0;
+
+  // Cálculo automático do Lucro: preenchido somente após o preenchimento do preço de Venda
   const calculatedProfit = useMemo(() => {
+    if (!hasSalePrice) return 0;
     const sale = parseVal(salePriceStr);
     const cost = parseVal(costPriceStr);
-    if (!salePriceStr && !costPriceStr) return 0;
     return sale - cost;
-  }, [salePriceStr, costPriceStr]);
+  }, [hasSalePrice, salePriceStr, costPriceStr]);
 
   const profitDisplayStr = useMemo(() => {
+    if (!hasSalePrice) return '';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(calculatedProfit);
-  }, [calculatedProfit]);
+  }, [hasSalePrice, calculatedProfit]);
 
   if (!isOpen) return null;
 
@@ -182,49 +210,86 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             />
           </div>
 
-          {/* Categoria */}
-          <div>
+          {/* Categoria Vinculada (Barra de Pesquisa a partir de 2 caracteres) */}
+          <div className="relative">
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-stone-700">
                 Categoria Vinculada
               </label>
               <span className="text-[10px] text-stone-400">
-                Selecione ou digite nova
+                Digite 2+ caracteres para buscar
               </span>
             </div>
-            
-            {/* Botões rápidos das categorias cadastradas */}
-            {categories.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategory(cat.name)}
-                    className={`text-[11px] py-1 px-2.5 rounded-lg border font-medium transition-colors cursor-pointer ${
-                      category.trim().toLowerCase() === cat.name.trim().toLowerCase()
-                        ? 'bg-[#302C9B] text-white border-[#302C9B] font-bold shadow-2xs'
-                        : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={category}
+                onFocus={() => {
+                  if (category.trim().length >= 2) {
+                    setIsCategoryDropdownOpen(true);
+                  }
+                }}
+                onBlur={() => setIsCategoryDropdownOpen(false)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCategory(val);
+                  setIsCategoryDropdownOpen(val.trim().length >= 2);
+                }}
+                autoComplete="off"
+                className="w-full text-xs pl-8 pr-8 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white focus:ring-1 focus:ring-[#302C9B] outline-none"
+                aria-label="Pesquisar categoria vinculada"
+              />
+              {category && (
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setCategory('');
+                    setIsCategoryDropdownOpen(false);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-stone-400 hover:text-stone-700 rounded-full cursor-pointer transition-colors"
+                  aria-label="Limpar categoria"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {isCategoryDropdownOpen && category.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 z-20 mt-1 bg-white rounded-xl border border-stone-200 shadow-lg max-h-40 overflow-y-auto py-1">
+                {matchingCategories.length > 0 ? (
+                  matchingCategories.map((cat) => {
+                    const isExactMatch =
+                      cat.name.trim().toLowerCase() === category.trim().toLowerCase();
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setCategory(cat.name);
+                          setIsCategoryDropdownOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                          isExactMatch
+                            ? 'bg-[#302C9B]/10 text-[#302C9B] font-bold'
+                            : 'text-stone-700 hover:bg-stone-50 font-medium'
+                        }`}
+                      >
+                        <span className="truncate">{cat.name}</span>
+                        {isExactMatch && <Check className="w-3.5 h-3.5 text-[#302C9B] shrink-0" />}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="px-3 py-2 text-[11px] text-stone-400">
+                    Nenhuma categoria cadastrada encontrada.
+                  </div>
+                )}
               </div>
             )}
-
-            <input
-              type="text"
-              list="categories-list"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 focus:border-[#302C9B] focus:bg-white focus:ring-1 focus:ring-[#302C9B] outline-none"
-            />
-            <datalist id="categories-list">
-              {categories.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
           </div>
 
           {/* SKU & Código */}
@@ -260,9 +325,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
                 Preços e Rentabilidade
               </span>
-              <span className="text-[10px] text-stone-400 flex items-center gap-1">
-                <Lock className="w-3 h-3" /> Lucro automático
-              </span>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -283,7 +345,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       setCostPriceStr(e.target.value);
                       if (error) setError(null);
                     }}
-                    className="w-full pl-6 pr-1.5 py-2 text-xs font-semibold text-stone-800 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none"
+                    onBlur={() => setCostPriceStr((prev) => formatTwoDecimals(prev))}
+                    className="w-full pl-6 pr-1.5 py-2 text-xs font-semibold text-stone-800 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none tabular-nums"
                   />
                 </div>
               </div>
@@ -305,16 +368,16 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       setSalePriceStr(e.target.value);
                       if (error) setError(null);
                     }}
-                    className="w-full pl-6 pr-1.5 py-2 text-xs font-bold text-stone-900 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none"
+                    onBlur={() => setSalePriceStr((prev) => formatTwoDecimals(prev))}
+                    className="w-full pl-6 pr-1.5 py-2 text-xs font-bold text-stone-900 bg-white rounded-xl border border-stone-300 focus:border-[#302C9B] outline-none tabular-nums"
                   />
                 </div>
               </div>
 
               {/* Lucro (R$) */}
               <div>
-                <label className="block text-[11px] font-semibold text-stone-700 mb-1 flex items-center justify-between">
-                  <span>Lucro (R$)</span>
-                  <Lock className="w-3 h-3 text-stone-400" />
+                <label className="block text-[11px] font-semibold text-stone-700 mb-1">
+                  Lucro (R$)
                 </label>
                 <div className="relative">
                   <input
@@ -324,7 +387,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     value={profitDisplayStr}
                     title="Cálculo automático: Preço de Venda - Preço de Custo"
                     className={`w-full px-2 py-2 text-xs font-bold rounded-xl border select-none cursor-not-allowed tabular-nums ${
-                      calculatedProfit >= 0
+                      !hasSalePrice
+                        ? 'bg-stone-100 text-stone-400 border-stone-200'
+                        : calculatedProfit >= 0
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-300/80'
                         : 'bg-red-50 text-red-800 border-red-300/80'
                     }`}
@@ -333,14 +398,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </div>
             </div>
 
-            {calculatedProfit > 0 && parseVal(salePriceStr) > 0 && (
-              <div className="flex items-center justify-between text-[10px] text-emerald-700 px-1 pt-0.5">
-                <span className="flex items-center gap-1 font-medium">
-                  <TrendingUp className="w-3 h-3" />
-                  Margem de lucro estimada:
-                </span>
+            {hasSalePrice && calculatedProfit > 0 && (
+              <div className="flex items-center justify-start gap-1.5 text-xs text-emerald-700 px-1 pt-0.5">
+                <TrendingUp className="w-4 h-4 shrink-0" />
+                <span className="font-medium">Margem de lucro estimada:</span>
                 <span className="font-bold tabular-nums">
-                  {((calculatedProfit / parseVal(salePriceStr)) * 100).toFixed(1)}%
+                  {((calculatedProfit / parseVal(salePriceStr)) * 100).toFixed(2).replace('.', ',')}%
                 </span>
               </div>
             )}
@@ -378,7 +441,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Unidade
+                Descrição
               </label>
               <input
                 type="text"

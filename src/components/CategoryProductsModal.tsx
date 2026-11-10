@@ -21,7 +21,6 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
   onUpdateQuantity,
   onClose,
   onOpenCart,
-  settings,
 }) => {
   if (!isOpen || !category) return null;
 
@@ -92,13 +91,6 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                   <h3 className="font-bold text-stone-900 text-sm leading-tight">
                     {product.name}
                   </h3>
-
-                  {/* Descrição adicional */}
-                  {!settings.hideCatalogDescription && product.description && (
-                    <p className="text-xs text-stone-400 mt-0.5 leading-snug">
-                      {product.description}
-                    </p>
-                  )}
 
                   {/* Unidade + Valor à esquerda e Seletor alinhado à direita (sem linha divisória) */}
                   <div className="mt-1 flex items-center justify-between gap-3">
