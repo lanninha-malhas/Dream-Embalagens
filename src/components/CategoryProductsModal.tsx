@@ -64,7 +64,7 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
         </div>
 
         {/* Products List for Category */}
-        <div className="p-3.5 space-y-2.5 overflow-y-auto flex-1">
+        <div className="p-3 sm:p-3.5 space-y-2 overflow-y-auto flex-1">
           {categoryProducts.length === 0 ? (
             <div className="p-8 bg-white rounded-2xl border border-dashed border-stone-300 text-center space-y-2">
               <Package className="w-8 h-8 text-stone-400 mx-auto" />
@@ -82,7 +82,7 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
               return (
                 <div
                   key={product.id}
-                  className={`p-3.5 bg-white rounded-xl border transition-all duration-150 ${
+                  className={`px-3.5 py-2.5 bg-white rounded-xl border transition-all duration-150 ${
                     isSelected
                       ? 'border-[#302C9B] shadow-sm ring-1 ring-[#302C9B]/30 bg-[#302C9B]/5'
                       : 'border-stone-200 hover:border-stone-300'
@@ -93,35 +93,34 @@ export const CategoryProductsModal: React.FC<CategoryProductsModalProps> = ({
                     {product.name}
                   </h3>
 
-                  {/* Linha 2: Informação da embalagem/unidade */}
-                  {product.unit && (
-                    <p className="text-xs text-stone-500 mt-1 leading-tight font-medium">
-                      {product.unit}
-                    </p>
-                  )}
-
                   {/* Descrição adicional */}
                   {!settings.hideCatalogDescription && product.description && (
-                    <p className="text-xs text-stone-400 mt-1 leading-snug">
+                    <p className="text-xs text-stone-400 mt-0.5 leading-snug">
                       {product.description}
                     </p>
                   )}
 
-                  {/* Linha 3: Preço e Seletor de Quantidade */}
-                  <div className="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-between gap-3">
-                    {/* Preço do produto */}
-                    <div>
-                      <span className="text-base font-bold text-stone-900 tabular-nums block">
-                        {formatBRL(product.price)}
-                      </span>
-                      {isSelected && (
-                        <span className="text-[11px] font-semibold text-[#302C9B] block mt-0.5 tabular-nums">
-                          Subtotal: {formatBRL(product.price * quantity)}
-                        </span>
+                  {/* Unidade + Valor à esquerda e Seletor alinhado à direita (sem linha divisória) */}
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      {product.unit && (
+                        <p className="text-xs text-stone-500 leading-tight font-medium">
+                          {product.unit}
+                        </p>
                       )}
+                      <div className={product.unit ? 'mt-1' : ''}>
+                        <span className="text-base font-bold text-stone-900 tabular-nums leading-tight block">
+                          {formatBRL(product.price)}
+                        </span>
+                        {isSelected && (
+                          <span className="text-[11px] font-semibold text-[#302C9B] block mt-0.5 tabular-nums leading-tight">
+                            Subtotal: {formatBRL(product.price * quantity)}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Seletor de Quantidade */}
+                    {/* Seletor de Quantidade (tamanho preservado) */}
                     <div className="flex items-center shrink-0">
                       {quantity === 0 ? (
                         <button

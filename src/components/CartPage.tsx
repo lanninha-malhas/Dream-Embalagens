@@ -109,71 +109,73 @@ export const CartPage: React.FC<CartPageProps> = ({
                 return (
                   <div
                     key={product.id}
-                    className="py-3 flex items-center justify-between gap-2.5"
+                    className="py-3 space-y-1.5"
                   >
-                    {/* Lado esquerdo: Pontinho indicador + Nome do Produto + Cálculo (ex: 01 x R$ 22,90 = R$ 22,90) */}
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    {/* Linha 1: Pontinho indicador + Nome do Produto em largura total */}
+                    <div className="flex items-start gap-2.5">
                       <span
                         className="w-2.5 h-2.5 rounded-full bg-[#302C9B] shrink-0 mt-1.5"
                         aria-hidden="true"
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-stone-900 leading-snug line-clamp-2">
-                          {product.name}
-                        </p>
-                        <p className="text-xs text-stone-600 font-medium tabular-nums mt-0.5">
-                          {qtyPadded} x {unitPriceFormatted} = {subtotalFormatted}
-                        </p>
-                      </div>
+                      <p className="text-sm font-bold text-stone-900 leading-snug flex-1 min-w-0">
+                        {product.name}
+                      </p>
                     </div>
 
-                    {/* Lado direito: Stepper estilizado no padrão com paleta do catálogo */}
-                    <div className="flex items-center bg-slate-100/90 border border-slate-200/90 rounded-xl p-1 gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onUpdateQuantity(product.id, quantity - 1)}
-                        className="w-7 h-7 rounded-lg bg-white border border-stone-200/90 text-stone-800 font-bold flex items-center justify-center hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs transition-transform"
-                        aria-label={`Diminuir quantidade de ${product.name}`}
-                      >
-                        <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </button>
+                    {/* Linha 2: Cálculo à esquerda + Seletor à direita */}
+                    <div className="pl-5 flex items-center justify-between gap-2.5">
+                      <p className="text-xs text-stone-600 font-medium tabular-nums min-w-0">
+                        {qtyPadded} x {unitPriceFormatted} = {subtotalFormatted}
+                      </p>
 
-                      <span className="w-6 text-center text-xs font-black text-stone-900 tabular-nums select-none">
-                        {quantity}
-                      </span>
+                      {/* Stepper estilizado no padrão com paleta do catálogo */}
+                      <div className="flex items-center bg-slate-100/90 border border-slate-200/90 rounded-xl p-1 gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQuantity(product.id, quantity - 1)}
+                          className="w-7 h-7 rounded-lg bg-white border border-stone-200/90 text-stone-800 font-bold flex items-center justify-center hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs transition-transform"
+                          aria-label={`Diminuir quantidade de ${product.name}`}
+                        >
+                          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-                        className="w-7 h-7 rounded-lg bg-[#302C9B] hover:bg-[#25227B] text-white font-black flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs transition-transform"
-                        aria-label={`Aumentar quantidade de ${product.name}`}
-                      >
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </button>
+                        <span className="w-6 text-center text-xs font-black text-stone-900 tabular-nums select-none">
+                          {quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQuantity(product.id, quantity + 1)}
+                          className="w-7 h-7 rounded-lg bg-[#302C9B] hover:bg-[#25227B] text-white font-black flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs transition-transform"
+                          aria-label={`Aumentar quantidade de ${product.name}`}
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Botão "Limpar" no canto direito com ícone de lixeira, exatamente como na imagem */}
-            <div className="flex justify-end pt-0.5">
+            {/* Botão "LIMPAR CARRINHO" centralizado horizontalmente */}
+            <div className="flex justify-center pt-0.5">
               <button
                 type="button"
                 onClick={onClearCart}
-                className="border border-rose-200/90 bg-rose-50/60 hover:bg-rose-100 text-rose-600 rounded-lg px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95 shadow-2xs"
+                className="border border-rose-200/90 bg-rose-50/60 hover:bg-rose-100 text-rose-600 rounded-lg px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95 shadow-2xs"
                 title="Esvaziar todos os itens do carrinho"
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                <span>Limpar</span>
+                <span>LIMPAR CARRINHO</span>
               </button>
             </div>
 
-            {/* Bloco inferior arredondado com Total do Pedido e Botão WhatsApp */}
+            {/* Bloco inferior arredondado com VALOR TOTAL e Botão WhatsApp */}
             <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-3.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-stone-700">
-                  Total do Pedido:
+                  VALOR TOTAL:
                 </span>
                 <span className="text-xl font-black text-[#302C9B] tabular-nums tracking-tight">
                   {formatBRL(totalOrderPrice)}
