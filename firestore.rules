@@ -55,6 +55,7 @@ service cloud.firestore {
         (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 300)) &&
         (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1500000)) &&
         (!('logoZoom' in data) || data.logoZoom is number) &&
+        (!('logoPosition' in data) || data.logoPosition in ['left', 'center', 'right']) &&
         (!('pixKey' in data) || (data.pixKey is string && data.pixKey.size() <= 100)) &&
         (!('minOrderValue' in data) || data.minOrderValue is number) &&
         (!('deliveryNotice' in data) || (data.deliveryNotice is string && data.deliveryNotice.size() <= 500)) &&

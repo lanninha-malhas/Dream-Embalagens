@@ -140,6 +140,11 @@
           "type": "number",
           "description": "Logo zoom percentage (-50 to +50)"
         },
+        "logoPosition": {
+          "type": "string",
+          "description": "Horizontal alignment of header logo",
+          "enum": ["left", "center", "right"]
+        },
         "whatsappNumber": {
           "type": "string",
           "description": "Target WhatsApp number for receiving orders",

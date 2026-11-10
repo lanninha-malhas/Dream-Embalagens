@@ -20,7 +20,11 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="w-full bg-white border-b border-stone-200/90 shadow-2xs">
-      <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
+      <div
+        className={`max-w-md mx-auto px-4 flex items-center justify-between relative ${
+          currentView === 'admin' ? 'h-14' : 'h-28'
+        }`}
+      >
         {currentView === 'admin' ? (
           <div className="flex items-center justify-between w-full">
             <h1 className="text-sm font-bold tracking-tight text-stone-900 flex items-center gap-2">
@@ -49,32 +53,36 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         ) : (
-          <>
-            {/* Espaçador equilibrado à esquerda (sem pontinho verde) */}
-            <div className="w-6" aria-hidden="true" />
-
-            {/* Logo da distribuidora 100% limpa e centralizada para clientes com zoom ajustável */}
-            <div className="flex-1 flex justify-center items-center py-1 overflow-hidden h-14">
-              {settings.logoUrl ? (
-                <img
-                  src={settings.logoUrl}
-                  alt={settings.storeName || ''}
-                  style={{
-                    transform: `scale(${1 + (settings.logoZoom ?? 0) / 100})`,
-                    transformOrigin: 'center center',
-                  }}
-                  className="h-8 sm:h-9 w-auto max-w-[220px] object-contain select-none transition-transform duration-150"
-                />
-              ) : settings.storeName ? (
-                <span className="font-bold text-sm tracking-tight text-stone-900">
-                  {settings.storeName}
-                </span>
-              ) : null}
-            </div>
-
-            {/* Espaçador equilibrado à direita para manter o logo perfeitamente centralizado */}
-            <div className="w-6" aria-hidden="true" />
-          </>
+          <div
+            className={`w-full flex items-center py-2 overflow-hidden h-28 ${
+              settings.logoPosition === 'left'
+                ? 'justify-start'
+                : settings.logoPosition === 'right'
+                ? 'justify-end'
+                : 'justify-center'
+            }`}
+          >
+            {settings.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt={settings.storeName || ''}
+                style={{
+                  transform: `scale(${1 + (settings.logoZoom ?? 0) / 100})`,
+                  transformOrigin:
+                    settings.logoPosition === 'left'
+                      ? 'left center'
+                      : settings.logoPosition === 'right'
+                      ? 'right center'
+                      : 'center center',
+                }}
+                className="h-16 sm:h-[72px] w-auto max-w-[280px] object-contain select-none transition-transform duration-150"
+              />
+            ) : settings.storeName ? (
+              <span className="font-bold text-lg tracking-tight text-stone-900">
+                {settings.storeName}
+              </span>
+            ) : null}
+          </div>
         )}
       </div>
     </header>

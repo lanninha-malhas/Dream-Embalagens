@@ -38,6 +38,7 @@ export interface StoreSettings {
   subtitle: string;
   logoUrl?: string;
   logoZoom?: number; // Zoom da imagem no cabeçalho: -50 a +50 (padrão 0)
+  logoPosition?: 'left' | 'center' | 'right'; // Posição da imagem no cabeçalho
   whatsappNumber: string; // E.g. "5511999998888"
   pixKey: string;
   minOrderValue: number;

@@ -9,6 +9,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   subtitle: '',
   logoUrl: '',
   logoZoom: 0,
+  logoPosition: 'center',
   whatsappNumber: '',
   pixKey: '',
   minOrderValue: 0,

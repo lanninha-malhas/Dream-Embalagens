@@ -20,6 +20,9 @@ import {
   ZoomIn,
   ZoomOut,
   Loader2,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 import { Product, StoreSettings, Category } from '../types.ts';
 import { formatBRL, maskPhone } from '../utils/formatters.ts';
@@ -159,6 +162,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [localSettings, setLocalSettings] = useState<StoreSettings>({
     ...settings,
     logoZoom: settings.logoZoom ?? 0,
+    logoPosition: settings.logoPosition || 'center',
     whatsappNumber: maskPhone(settings.whatsappNumber || ''),
     hideCatalogDescription: settings.hideCatalogDescription ?? true,
     hideCatalogPrice: settings.hideCatalogPrice ?? true,
@@ -171,12 +175,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setLocalSettings({
       ...settings,
       logoZoom: settings.logoZoom ?? 0,
+      logoPosition: settings.logoPosition || 'center',
       whatsappNumber: maskPhone(settings.whatsappNumber || ''),
       hideCatalogDescription: settings.hideCatalogDescription ?? true,
       hideCatalogPrice: settings.hideCatalogPrice ?? true,
       showCategoryImages: settings.showCategoryImages ?? false,
     });
   }, [settings]);
+
+  const handleLogoPositionChange = async (position: 'left' | 'center' | 'right') => {
+    const updatedSettings: StoreSettings = {
+      ...localSettings,
+      logoPosition: position,
+    };
+    setLocalSettings(updatedSettings);
+    try {
+      await onSaveSettings(updatedSettings);
+    } catch (err) {
+      console.warn('Erro ao atualizar posição da imagem do cabeçalho:', err);
+    }
+  };
 
   // Redimensionamento e otimização para imagem quadrada da categoria (~300x300)
   const processCategoryImage = (file: File, callback: (dataUrl: string) => void) => {
@@ -848,34 +866,61 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
 
         <form onSubmit={handleSaveSettingsSubmit} className="space-y-4">
-          {/* CONTAINER DE IMAGEM DO CABEÇALHO (MARCA / NOME) */}
-          <div className="bg-stone-50/80 rounded-2xl border border-stone-200/90 p-3.5 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                <ImageIcon className="w-4 h-4 text-[#302C9B]" />
-                <span>Imagem do Cabeçalho (Marca / Nome)</span>
+          {/* PRÉVIA AO VIVO DO CABEÇALHO COM UPLOAD INTEGRADO E REPOSICIONAMENTO */}
+          <div className="bg-stone-50/80 rounded-2xl border border-stone-200/90 p-3 space-y-2.5">
+            <input
+              id="header-logo-upload-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleLogoUpload(file);
+                e.target.value = '';
+              }}
+            />
+
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5 min-w-0">
+                <ImageIcon className="w-4 h-4 text-[#302C9B] shrink-0" />
+                <span className="truncate">Prévia ao Vivo no Cabeçalho</span>
               </label>
 
-              {localSettings.logoUrl && (
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  onClick={() =>
-                    setLocalSettings((prev) => ({
-                      ...prev,
-                      logoUrl: '',
-                      logoZoom: 0,
-                    }))
-                  }
-                  className="text-[11px] font-medium text-stone-500 hover:text-red-600 flex items-center gap-1 cursor-pointer transition-colors"
-                  title="Remover imagem do cabeçalho"
+                  onClick={() => {
+                    const fileInput = document.getElementById('header-logo-upload-input') as HTMLInputElement;
+                    fileInput?.click();
+                  }}
+                  className="text-[11px] font-semibold text-[#302C9B] hover:bg-[#302C9B]/10 px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                  title={localSettings.logoUrl ? 'Alterar imagem do cabeçalho' : 'Subir imagem do cabeçalho'}
                 >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Remover imagem</span>
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{localSettings.logoUrl ? 'Alterar' : 'Subir'}</span>
                 </button>
-              )}
+
+                {localSettings.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        logoUrl: '',
+                        logoZoom: 0,
+                      }))
+                    }
+                    className="text-[11px] font-medium text-stone-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Remover imagem do cabeçalho"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remover</span>
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Caixa de Upload com Drag & Drop */}
+            {/* Container único: Prévia ao Vivo + Upload por Clique / Arrastar e Soltar */}
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -894,54 +939,78 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 const fileInput = document.getElementById('header-logo-upload-input') as HTMLInputElement;
                 fileInput?.click();
               }}
-              className={`border-2 border-dashed rounded-xl p-3.5 transition-all flex flex-col items-center justify-center text-center cursor-pointer select-none ${
+              title="Clique ou arraste a imagem aqui para enviar ao cabeçalho"
+              className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center overflow-hidden px-4 cursor-pointer select-none transition-all ${
                 isLogoDragOver
                   ? 'border-[#302C9B] bg-[#302C9B]/5 scale-[0.99]'
-                  : 'border-stone-300 hover:border-[#302C9B] bg-white hover:bg-stone-50/50'
+                  : 'border-stone-300/90 hover:border-[#302C9B] bg-white'
+              } ${
+                localSettings.logoUrl
+                  ? localSettings.logoPosition === 'left'
+                    ? 'justify-start'
+                    : localSettings.logoPosition === 'right'
+                    ? 'justify-end'
+                    : 'justify-center'
+                  : 'justify-center'
               }`}
             >
-              <input
-                id="header-logo-upload-input"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleLogoUpload(file);
-                }}
-              />
-              <div className="w-9 h-9 rounded-xl bg-[#302C9B]/10 border border-[#302C9B]/20 text-[#302C9B] flex items-center justify-center mb-1.5 shadow-2xs">
-                <Upload className="w-4 h-4 text-[#302C9B]" />
-              </div>
-              <p className="text-xs font-bold text-stone-800">
-                Clique aqui para escolher ou arraste a imagem
-              </p>
-              <p className="text-[11px] text-stone-500 mt-0.5">
-                Formatos recomendados: PNG (fundo transparente), JPG ou SVG
-              </p>
+              {localSettings.logoUrl ? (
+                <img
+                  src={localSettings.logoUrl}
+                  alt=""
+                  style={{
+                    transform: `scale(${1 + (localSettings.logoZoom ?? 0) / 100})`,
+                    transformOrigin:
+                      localSettings.logoPosition === 'left'
+                        ? 'left center'
+                        : localSettings.logoPosition === 'right'
+                        ? 'right center'
+                        : 'center center',
+                  }}
+                  className="h-16 w-auto max-w-[260px] object-contain select-none transition-transform duration-100"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center gap-1">
+                  <div className="w-8 h-8 rounded-lg bg-[#302C9B]/10 text-[#302C9B] flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-[#302C9B]" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-stone-600">
+                    Clique ou arraste a imagem do cabeçalho aqui
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* Simulação em Tempo Real no Cabeçalho */}
-            <div className="bg-white rounded-xl border border-stone-200/90 p-2.5 flex flex-col items-center justify-center">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">
-                Prévia ao Vivo no Cabeçalho
+            {/* Opção de Reposicionamento da Imagem no Cabeçalho */}
+            <div className="space-y-1.5 pt-0.5">
+              <span className="text-[11px] font-semibold text-stone-700 block">
+                Posição da Imagem no Cabeçalho
               </span>
-              <div className="w-full h-12 bg-stone-50/70 rounded-lg border border-dashed border-stone-200 flex items-center justify-center overflow-hidden px-4">
-                {localSettings.logoUrl ? (
-                  <img
-                    src={localSettings.logoUrl}
-                    alt=""
-                    style={{
-                      transform: `scale(${1 + (localSettings.logoZoom ?? 0) / 100})`,
-                      transformOrigin: 'center center',
-                    }}
-                    className="h-8 w-auto max-w-[200px] object-contain select-none transition-transform duration-100"
-                  />
-                ) : (
-                  <span className="text-[11px] text-stone-400 font-medium">
-                    Nenhuma imagem selecionada
-                  </span>
-                )}
+              <div className="grid grid-cols-3 gap-1.5">
+                {(
+                  [
+                    { value: 'left', label: 'À esquerda', Icon: AlignLeft },
+                    { value: 'center', label: 'Centralizada', Icon: AlignCenter },
+                    { value: 'right', label: 'À direita', Icon: AlignRight },
+                  ] as const
+                ).map(({ value, label, Icon }) => {
+                  const isActive = (localSettings.logoPosition || 'center') === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleLogoPositionChange(value)}
+                      className={`py-1.5 px-2 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-[#302C9B] text-white border-[#302C9B] shadow-2xs'
+                          : 'bg-white text-stone-600 border-stone-200 hover:border-[#302C9B]/50 hover:text-stone-900'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
